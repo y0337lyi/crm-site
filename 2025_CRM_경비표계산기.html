@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025 CRM 경비표 계산기</title>
+<script>
+  const PASSWORD = '1234'; // ← 비밀번호 여기서 변경
+
+  window.onload = function() {
+    if (sessionStorage.getItem('crm_auth') === PASSWORD) return;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  };
+  function doLogin() {
+    if (document.getElementById('pw-input').value === PASSWORD) {
+      sessionStorage.setItem('crm_auth', PASSWORD);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else {
+      document.getElementById('pw-error').style.display = 'block';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  }
+  function onEnter(e) { if (e.key === 'Enter') doLogin(); }
+</script>
+<style>
+  #login-screen {
+    position: fixed; inset: 0; background: #f4f3ef;
+    display: none; align-items: center; justify-content: center; z-index: 9999;
+  }
+  .login-box {
+    background: #fff; border-radius: 16px; border: 1px solid #e0ddd6;
+    padding: 2rem; width: 300px; text-align: center;
+  }
+  .login-box h2 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .login-box p { font-size: 12px; color: #888; margin-bottom: 1.5rem; }
+  .login-box input {
+    width: 100%; height: 38px; border: 1px solid #ddd; border-radius: 8px;
+    padding: 0 12px; font-size: 14px; outline: none; text-align: center;
+    letter-spacing: 4px; margin-bottom: 10px;
+  }
+  .login-box input:focus { border-color: #1a56db; }
+  .login-box button {
+    width: 100%; height: 38px; background: #1a56db; color: #fff;
+    border: none; border-radius: 8px; font-size: 14px; cursor: pointer;
+  }
+  .login-box button:hover { background: #1448b8; }
+  .pw-error { font-size: 12px; color: #b33030; margin-top: 8px; display: none; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: #f4f3ef;
+    color: #1a1a1a;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 1.5rem 1rem;
+  }
+  .container {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e0ddd6;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 560px;
+  }
+  h1 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 1rem; }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px;
+    background: #e8f0fe; color: #1a56db; margin-bottom: 0.75rem;
+  }
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .field label { display: block; font-size: 11px; color: #666; margin-bottom: 3px; }
+  .field input[type=number] {
+    width: 100%; height: 34px; border: 1px solid #ddd; border-radius: 8px;
+    padding: 0 10px; font-size: 13px; color: #1a1a1a; background: #fafaf9;
+    outline: none; transition: border-color 0.15s;
+  }
+  .field input[type=number]:focus { border-color: #1a56db; background: #fff; }
+  .field input[type=text] {
+    width: 100%; height: 34px; border: 1px solid #ddd; border-radius: 8px;
+    padding: 0 10px; font-size: 13px; color: #1a1a1a; background: #fafaf9;
+    outline: none; transition: border-color 0.15s; text-align: right;
+  }
+  .field input[type=text]:focus { border-color: #1a56db; background: #fff; }
+  .note { font-size: 11px; color: #aaa; margin-top: 3px; }
+  hr { border: none; border-top: 1px solid #eee; margin: 0.75rem 0; }
+
+  /* 세액 요약 */
+  .tax-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 0.75rem 0; }
+  .tax-card { background: #f4f3ef; border-radius: 8px; padding: 8px 10px; }
+  .tax-card-label { font-size: 10px; color: #888; margin-bottom: 3px; }
+  .tax-card-value { font-size: 13px; font-weight: 600; color: #1a1a1a; word-break: break-all; }
+
+  /* 환급/납부 결과 */
+  .result-box { border-radius: 10px; padding: 10px 14px; margin: 0.5rem 0; }
+  .result-box.refund { background: #eaf7f0; border: 1px solid #b2e0cc; }
+  .result-box.payment { background: #fff4f4; border: 1px solid #f0bfbf; }
+  .result-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.03em; }
+  .result-box.refund .result-title { color: #1a7a4a; }
+  .result-box.payment .result-title { color: #b33030; }
+  .result-rows-wrap { display: flex; align-items: center; }
+  .result-item { flex: 1; }
+  .result-item-label { font-size: 10px; color: #666; margin-bottom: 2px; }
+  .result-item-value { font-size: 13px; font-weight: 600; }
+  .result-box.refund .result-item-value { color: #1a7a4a; }
+  .result-box.payment .result-item-value { color: #b33030; }
+  .result-item.total .result-item-value { font-size: 15px; }
+  .result-divider { width: 0.5px; background: #cce8da; margin: 0 10px; align-self: stretch; }
+  .result-box.payment .result-divider { background: #f0bfbf; }
+
+  /* 경비표 */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { font-size: 11px; font-weight: 500; color: #888; text-align: left; padding: 5px 0; border-bottom: 1px solid #eee; }
+  th:last-child, td:last-child { text-align: right; }
+  td { padding: 4px 0; border-bottom: 1px solid #f0ede8; color: #1a1a1a; }
+  td.muted { color: #bbb; }
+  tr.total td { font-weight: 600; border-bottom: none; border-top: 1px solid #ccc; padding-top: 6px; }
+
+  /* 비율 편집 */
+  .ratio-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #555; cursor: pointer; user-select: none; }
+  .ratio-toggle:hover { color: #1a56db; }
+  .ratio-toggle .arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+  .ratio-toggle.open .arrow { transform: rotate(90deg); }
+  .ratio-body { display: none; margin-top: 12px; }
+  .ratio-body.open { display: block; }
+  .ratio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ratio-field { display: flex; align-items: center; gap: 6px; }
+  .ratio-field label { font-size: 12px; color: #555; min-width: 80px; }
+  .ratio-field input {
+    width: 80px; height: 30px; border: 1px solid #ddd; border-radius: 6px;
+    padding: 0 8px; font-size: 12px; background: #fafaf9; outline: none; text-align: right;
+  }
+  .ratio-field input:focus { border-color: #1a56db; background: #fff; }
+  .ratio-field .pct { font-size: 11px; color: #aaa; }
+  .ratio-sum-row { margin-top: 8px; font-size: 12px; color: #555; display: flex; align-items: center; gap: 6px; }
+  .ratio-sum-row .val { font-weight: 600; }
+  .ratio-sum-row .val.ok { color: #1a7a4a; }
+  .ratio-sum-row .val.warn { color: #b45309; }
+  .btn-reset { margin-top: 8px; font-size: 11px; color: #888; background: none; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .btn-reset:hover { border-color: #aaa; color: #333; }
+  .warn-box { font-size: 12px; color: #b45309; margin-top: 8px; padding: 7px 12px; background: #fef9c3; border-radius: 8px; }
+  #income_rate_row { display: none; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h2>2025 CRM 경비표 계산기</h2>
+    <p>비밀번호를 입력하세요</p>
+    <input type="password" id="pw-input" placeholder="••••" onkeydown="onEnter(event)" autofocus>
+    <button onclick="doLogin()">확인</button>
+    <div class="pw-error" id="pw-error">비밀번호가 틀렸습니다</div>
+  </div>
+</div>
+
+<div id="app">
+<div class="container">
+  <h1>2025년 귀속 CRM 경비표 계산기</h1>
+  <p class="subtitle">수입금액 입력 시 구간 자동 판별 · 접대비조정 경비 자동 계산</p>
+
+  <div class="input-grid">
+    <div class="field">
+      <label>수입금액 (원)</label>
+      <input type="text" id="revenue" value="29,583,514" oninput="fmtInput(this)" onblur="fmtInput(this)">
+    </div>
+    <div class="field">
+      <label>기본공제 (원)</label>
+      <input type="text" id="deduction" value="1,500,000" oninput="fmtInput(this)" onblur="fmtInput(this)">
+    </div>
+    <div class="field">
+      <label>국민연금 (원)</label>
+      <input type="text" id="pension" value="0" oninput="fmtInput(this)" onblur="fmtInput(this)">
+    </div>
+    <div class="field">
+      <label>노란우산공제 (원)</label>
+      <input type="text" id="umbrella" value="0" oninput="fmtInput(this)" onblur="fmtInput(this)">
+    </div>
+  </div>
+
+  <div id="income_rate_row">
+    <div class="field">
+      <label>소득율 (%)</label>
+      <input type="number" id="income_rate" value="15" step="0.1" min="1" max="100" oninput="calc()">
+      <div class="note">구간 10 이상은 소득율 직접 입력 방식입니다</div>
+    </div>
+  </div>
+
+  <div id="badge_area" class="badge"></div>
+  <div class="tax-summary" id="tax-summary"></div>
+  <div id="result-box-area"></div>
+
+  <hr>
+
+  <table>
+    <thead><tr><th>경비 항목</th><th>금액 (원)</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div id="warn_area"></div>
+  <hr>
+
+  <div class="ratio-toggle" id="ratio-toggle" onclick="toggleRatio()">
+    <span class="arrow">▶</span>
+    <span>경비 구성비율 수정</span>
+  </div>
+  <div class="ratio-body" id="ratio-body">
+    <div class="ratio-grid" id="ratio-inputs"></div>
+    <div class="ratio-sum-row">
+      합계:&nbsp;<span class="val" id="ratio-sum-val"></span>
+      <span id="ratio-sum-note" style="font-size:11px"></span>
+    </div>
+    <button class="btn-reset" onclick="resetRatios()">기본값으로 초기화</button>
+  </div>
+</div>
+
+<script>
+const BRACKETS = [
+  {label:'구간 1. ~3,500만원',         max:35000000,  crm:1.0,  mode:'crm'},
+  {label:'구간 2. 3,501만~3,999만원',  max:39990000,  crm:1.0,  mode:'crm'},
+  {label:'구간 3. 4,000만~4,499만원',  max:44990000,  crm:0.9,  mode:'crm'},
+  {label:'구간 4. 4,500만~5,099만원',  max:50990000,  crm:0.85, mode:'crm'},
+  {label:'구간 5. 5,100만~5,599만원',  max:55990000,  crm:0.8,  mode:'crm'},
+  {label:'구간 6. 5,600만~5,999만원',  max:59990000,  crm:0.75, mode:'crm'},
+  {label:'구간 7. 6,000만~6,499만원',  max:64990000,  crm:0.7,  mode:'crm'},
+  {label:'구간 8. 6,500만~6,999만원',  max:69990000,  crm:0.6,  mode:'crm'},
+  {label:'구간 9. 7,000만~7,499만원',  max:74990000,  crm:0.5,  mode:'crm'},
+  {label:'구간 10. 7,500만~7,999만원', max:79990000,  mode:'rate'},
+  {label:'구간 11. 8,000만~8,999만원', max:89990000,  mode:'rate'},
+  {label:'구간 12. 9,000만~9,999만원', max:99990000,  mode:'rate'},
+  {label:'구간 13. 1억원 이상',         max:Infinity,  mode:'rate'},
+];
+
+const DEFAULT_RATIOS_CRM = {
+  '세금과공과': 0.0168464943100645,
+  '접대비':     0.3,
+  '지급수수료': 0.290008702365146,
+  '소모품비':   0.175,
+  '운반비':     0.0200006001631135,
+  '광고선전비': 0.065001950530119,
+  '여비교통비': 0.031000930252826,
+  '기타':       0.102103063832695,
+};
+
+const DEFAULT_RATIOS_RATE = {
+  '여비교통비': 0.0276380754392628,
+  '접대비':     0.154916345173606,
+  '통신비':     0.0313990445159614,
+  '수도광열비': 0.0146590840945889,
+  '전력비':     0.0201841005856837,
+  '세금과공과': 0.0162002518639935,
+  '지급임차료': 0.0583125112439283,
+  '보험료':     0.0318847822176025,
+  '운반비':     0.0071311491794431,
+  '도서인쇄비': 0.0411847602294761,
+  '회의비':     0.0276480700421772,
+  '사무용품비': 0.0270953685010095,
+  '소모품비':   0.0999460291442621,
+  '지급수수료': 0.159913646630819,
+  '광고선전비': 0.0313220860735203,
+  '판매촉진비': 0.106342575009495,
+  '판매수수료': 0.123433345993164,
+  '잡비':       0.0207887740620065,
+};
+
+let currentMode = 'crm';
+
+function getDefaultRatios() {
+  return currentMode === 'crm' ? DEFAULT_RATIOS_CRM : DEFAULT_RATIOS_RATE;
+}
+
+function getRatios() {
+  const r = {};
+  for (const name of Object.keys(getDefaultRatios())) {
+    const el = document.getElementById('ratio_' + name);
+    r[name] = el ? (parseFloat(el.value) || 0) / 100 : getDefaultRatios()[name];
+  }
+  return r;
+}
+
+function updateRatioSum() {
+  const s = Object.values(getRatios()).reduce((a,b)=>a+b,0) * 100;
+  const val  = document.getElementById('ratio-sum-val');
+  const note = document.getElementById('ratio-sum-note');
+  val.textContent = s.toFixed(4) + '%';
+  if (Math.abs(s - 100) < 0.01) {
+    val.className = 'val ok'; note.textContent = '✓ 정상'; note.style.color = '#1a7a4a';
+  } else {
+    val.className = 'val warn'; note.textContent = '※ 합계를 100%에 맞춰주세요'; note.style.color = '#b45309';
+  }
+}
+
+function buildRatioInputs() {
+  document.getElementById('ratio-inputs').innerHTML =
+    Object.entries(getDefaultRatios()).map(([name, val]) => `
+      <div class="ratio-field">
+        <label>${name}</label>
+        <input type="number" id="ratio_${name}" value="${(val*100).toFixed(4)}" step="0.0001" min="0" oninput="updateRatioSum();calc()">
+        <span class="pct">%</span>
+      </div>
+    `).join('');
+  updateRatioSum();
+}
+
+function resetRatios() {
+  for (const [name, val] of Object.entries(getDefaultRatios())) {
+    const el = document.getElementById('ratio_' + name);
+    if (el) el.value = (val * 100).toFixed(4);
+  }
+  updateRatioSum(); calc();
+}
+
+function toggleRatio() {
+  document.getElementById('ratio-toggle').classList.toggle('open');
+  document.getElementById('ratio-body').classList.toggle('open');
+}
+
+function fmtInput(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const num = parseInt(raw, 10) || 0;
+  const pos = el.selectionStart;
+  const prevLen = el.value.length;
+  el.value = num === 0 ? '0' : num.toLocaleString('ko-KR');
+  // 커서 위치 보정
+  const diff = el.value.length - prevLen;
+  try { el.setSelectionRange(pos + diff, pos + diff); } catch(e) {}
+  calc();
+}
+
+function getVal(id) {
+  return parseInt((document.getElementById(id).value || '0').replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+function fmt(n) { return Math.abs(Math.round(n)).toLocaleString('ko-KR'); }
+
+function calcCRM(rev, ded, pen, umb) {
+  const paidIncome = rev * 0.03;
+  const paidLocal  = paidIncome * 0.1;
+  const decIncome  = Math.max(paidIncome - ded / 1.1, 0);
+  const decLocal   = decIncome * 0.1;
+  const pivot      = (decIncome + 70000) / 0.06;
+  const taxBase    = pivot <= 14000000 ? pivot : (decIncome + 70000 + 1260000) / 0.15;
+  const expenses   = rev - taxBase - ded - pen - umb;
+  return { decIncome, paidIncome, refIncome: paidIncome - decIncome, refLocal: paidLocal - decLocal, expenses };
+}
+
+function calcRATE(rev, ded, pen, umb, rate) {
+  const income  = rev * rate / 100;
+  const taxable = income - ded - pen - umb;
+  let san = 0;
+  if      (taxable <= 14000000) san = taxable * 0.06;
+  else if (taxable <= 50000000) san = taxable * 0.15 - 1260000;
+  else if (taxable <= 88000000) san = taxable * 0.24 - 5760000;
+  else                          san = taxable * 0.35 - 14900000;
+  const decIncome  = Math.max(san - 70000, 0);
+  const paidIncome = rev * 0.03;
+  const refIncome  = paidIncome - decIncome;
+  return { decIncome, paidIncome, refIncome, refLocal: refIncome * 0.1, expenses: rev - income };
+}
+
+function distributeExpenses(expenses, rev) {
+  const ratios   = getRatios();
+  const ratioSum = Object.values(ratios).reduce((a,b)=>a+b,0);
+  const entLimit = 12000000 + rev * 0.002 - 500000;
+  const rawEnt   = expenses * ratios['접대비'] / ratioSum;
+  const ent      = Math.min(rawEnt, entLimit);
+  const overflow = Math.max(0, rawEnt - entLimit);
+  return Object.entries(ratios).map(([name, ratio]) => {
+    let amt;
+    if      (name === '접대비')     amt = ent;
+    else if (name === '지급수수료') amt = expenses * ratio / ratioSum + overflow;
+    else                            amt = expenses * ratio / ratioSum;
+    return { name, amt };
+  });
+}
+
+function calc() {
+  const rev = getVal('revenue');
+  const ded = getVal('deduction');
+  const pen = getVal('pension');
+  const umb = getVal('umbrella');
+
+  const bracket     = BRACKETS.find(b => rev <= b.max) || BRACKETS[BRACKETS.length-1];
+  const isRate      = bracket.mode === 'rate';
+  const modeChanged = (isRate ? 'rate' : 'crm') !== currentMode;
+
+  document.getElementById('income_rate_row').style.display = isRate ? 'block' : 'none';
+  document.getElementById('badge_area').textContent = bracket.label;
+
+  if (modeChanged) {
+    currentMode = isRate ? 'rate' : 'crm';
+    buildRatioInputs();
+  }
+
+  let result;
+  if (isRate) {
+    const ir = parseFloat(document.getElementById('income_rate').value) || 15;
+    result = calcRATE(rev, ded, pen, umb, ir);
+  } else {
+    result = calcCRM(rev, ded, pen, umb, bracket.crm);
+  }
+
+  const { decIncome, paidIncome, refIncome, refLocal, expenses } = result;
+  const safeExp = Math.max(expenses, 0);
+  const rows    = distributeExpenses(safeExp, rev);
+  const total   = refIncome + refLocal;
+  const isRefund = total >= 0;
+  const cls     = isRefund ? 'refund' : 'payment';
+  const lbl     = isRefund ? '환급' : '납부';
+
+  document.getElementById('tax-summary').innerHTML = `
+    <div class="tax-card"><div class="tax-card-label">결정세액 (소득세)</div><div class="tax-card-value">${fmt(decIncome)}원</div></div>
+    <div class="tax-card"><div class="tax-card-label">기납부세액 (소득세)</div><div class="tax-card-value">${fmt(paidIncome)}원</div></div>
+    <div class="tax-card"><div class="tax-card-label">필요경비 합계</div><div class="tax-card-value">${fmt(safeExp)}원</div></div>
+  `;
+
+  document.getElementById('result-box-area').innerHTML = `
+    <div class="result-box ${cls}">
+      <div class="result-title">신고 결과 — ${lbl}</div>
+      <div class="result-rows-wrap">
+        <div class="result-item">
+          <div class="result-item-label">소득세 ${refIncome>=0?'환급':'납부'}</div>
+          <div class="result-item-value">${fmt(refIncome)}원</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-item">
+          <div class="result-item-label">지방소득세 ${refLocal>=0?'환급':'납부'}</div>
+          <div class="result-item-value">${fmt(refLocal)}원</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-item total">
+          <div class="result-item-label">합계 ${lbl}</div>
+          <div class="result-item-value">${fmt(total)}원</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('tbody').innerHTML =
+    rows.map(r => `<tr><td class="${r.amt>0?'':'muted'}">${r.name}</td><td>${fmt(r.amt)}</td></tr>`).join('') +
+    `<tr class="total"><td>합계</td><td>${fmt(rows.reduce((a,r)=>a+r.amt,0))}</td></tr>`;
+
+  document.getElementById('warn_area').innerHTML = expenses < 0
+    ? '<div class="warn-box">⚠ 필요경비가 음수입니다. 수입금액 또는 공제 항목을 확인해 주세요.</div>' : '';
+}
+
+buildRatioInputs();
+calc();
+</script>
+</div>
+</div>
+</body>
+</html>
