@@ -146,7 +146,20 @@
   .btn-reset { margin-top: 8px; font-size: 11px; color: #888; background: none; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
   .btn-reset:hover { border-color: #aaa; color: #333; }
   .warn-box { font-size: 12px; color: #b45309; margin-top: 8px; padding: 7px 12px; background: #fef9c3; border-radius: 8px; }
-  #income_rate_row { display: none; margin-bottom: 8px; }
+  #income_rate_row { margin-bottom: 8px; }
+  #income_rate_row .rate-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  #income_rate_row .rate-grid.crm-mode {
+    grid-template-columns: 1fr;
+  }
+  #rate-field-wrap { display: block; }
+  #rate-field-wrap.hidden { display: none; }
+  #income_amount_display {
+    width: 100%; height: 34px; border: 1px solid #e0ddd6; border-radius: 8px;
+    padding: 0 10px; font-size: 13px; color: #1a56db; background: #eef3fd;
+    outline: none; text-align: right; font-weight: 600; cursor: default;
+  }
 </style>
 </head>
 <body>
@@ -186,11 +199,18 @@
   </div>
 
   <div id="income_rate_row">
-    <div class="field">
-      <label>소득율 (%)</label>
-      <input type="number" id="income_rate" value="15" step="0.1" min="1" max="100" oninput="calc()">
-      <div class="note">구간 10 이상은 소득율 직접 입력 방식입니다</div>
+    <div class="rate-grid" id="rate-grid">
+      <div class="field" id="rate-field-wrap">
+        <label>소득율 (%)</label>
+        <input type="number" id="income_rate" value="15" step="0.1" min="1" max="100" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>소득금액 (원) <span style="font-size:10px;color:#1a56db;">자동계산</span></label>
+        <input type="text" id="income_amount_display" readonly>
+      </div>
     </div>
+    <div class="note" id="income_rate_note" style="margin-top:4px;display:none;">구간 10 이상은 소득율 직접 입력 방식입니다 · 소득금액 = 수입금액 × 소득율</div>
+    <div class="note" id="income_crm_note" style="margin-top:4px;">소득금액 = 수입금액 − 필요경비</div>
   </div>
 
   <div id="badge_area" class="badge"></div>
@@ -340,15 +360,20 @@ function getVal(id) {
 
 function fmt(n) { return Math.abs(Math.round(n)).toLocaleString('ko-KR'); }
 
-function calcCRM(rev, ded, pen, umb) {
+function calcCRM(rev, ded, pen, umb, crmRate) {
   const paidIncome = rev * 0.03;
   const paidLocal  = paidIncome * 0.1;
-  const decIncome  = Math.max(paidIncome - ded / 1.1, 0);
+  // 환급액 = 기납부세액 × 환급비율 (수수료 환산표 기준)
+  const refIncome  = paidIncome * crmRate;
+  const decIncome  = paidIncome - refIncome;    // 결정세액 = 기납부 - 환급
   const decLocal   = decIncome * 0.1;
-  const pivot      = (decIncome + 70000) / 0.06;
-  const taxBase    = pivot <= 14000000 ? pivot : (decIncome + 70000 + 1260000) / 0.15;
-  const expenses   = rev - taxBase - ded - pen - umb;
-  return { decIncome, paidIncome, refIncome: paidIncome - decIncome, refLocal: paidLocal - decLocal, expenses };
+  const refLocal   = paidLocal - decLocal;
+  // 경비 역산: 결정세액 → 산출세액 → 과세표준 → 필요경비
+  const san    = decIncome + 70000;             // 세액공제 7만원 역산
+  const pivot  = san / 0.06;
+  const taxBase = pivot <= 14000000 ? pivot : (san + 1260000) / 0.15;
+  const expenses = rev - taxBase - ded - pen - umb;
+  return { decIncome, paidIncome, refIncome, refLocal, expenses };
 }
 
 function calcRATE(rev, ded, pen, umb, rate) {
@@ -391,8 +416,13 @@ function calc() {
   const isRate      = bracket.mode === 'rate';
   const modeChanged = (isRate ? 'rate' : 'crm') !== currentMode;
 
-  document.getElementById('income_rate_row').style.display = isRate ? 'block' : 'none';
+  document.getElementById('income_rate_row').style.display = 'block';
   document.getElementById('badge_area').textContent = bracket.label;
+
+  const rateGrid = document.getElementById('rate-grid');
+  const rateFieldWrap = document.getElementById('rate-field-wrap');
+  const rateNote = document.getElementById('income_rate_note');
+  const crmNote = document.getElementById('income_crm_note');
 
   if (modeChanged) {
     currentMode = isRate ? 'rate' : 'crm';
@@ -403,8 +433,20 @@ function calc() {
   if (isRate) {
     const ir = parseFloat(document.getElementById('income_rate').value) || 15;
     result = calcRATE(rev, ded, pen, umb, ir);
+    // 소득금액 자동계산 (소득율 방식)
+    const incomeAmt = Math.round(rev * ir / 100);
+    document.getElementById('income_amount_display').value = incomeAmt.toLocaleString('ko-KR') + ' 원';
+    rateGrid.classList.remove('crm-mode');
+    rateFieldWrap.classList.remove('hidden');
+    rateNote.style.display = 'block';
+    crmNote.style.display = 'none';
   } else {
     result = calcCRM(rev, ded, pen, umb, bracket.crm);
+    rateGrid.classList.add('crm-mode');
+    rateFieldWrap.classList.add('hidden');
+    rateNote.style.display = 'none';
+    crmNote.style.display = 'block';
+    // 소득금액 = 수입금액 − 필요경비 (calcCRM 결과 이후 safeExp로 업데이트)
   }
 
   const { decIncome, paidIncome, refIncome, refLocal, expenses } = result;
@@ -414,6 +456,12 @@ function calc() {
   const isRefund = total >= 0;
   const cls     = isRefund ? 'refund' : 'payment';
   const lbl     = isRefund ? '환급' : '납부';
+
+  // CRM 모드: 소득금액 = 수입금액 − 필요경비
+  if (!isRate) {
+    const crmIncomeAmt = Math.max(rev - safeExp, 0);
+    document.getElementById('income_amount_display').value = crmIncomeAmt.toLocaleString('ko-KR') + ' 원';
+  }
 
   document.getElementById('tax-summary').innerHTML = `
     <div class="tax-card"><div class="tax-card-label">결정세액 (소득세)</div><div class="tax-card-value">${fmt(decIncome)}원</div></div>
