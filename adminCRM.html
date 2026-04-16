@@ -142,6 +142,44 @@
   .modal-btn-primary { width:100%; padding:12px; background:var(--green-dark); color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; margin-bottom:8px; }
   .modal-btn-secondary { width:100%; padding:11px; background:#fff; color:var(--text-secondary); border:1.5px solid var(--border); border-radius:8px; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer; }
 
+  /* 날짜별 접수 팝업 */
+  .daily-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; align-items:center; justify-content:center; }
+  .daily-modal-overlay.open { display:flex; }
+  .daily-modal-box { background:#fff; border-radius:16px; padding:0; width:560px; max-width:96vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 12px 48px rgba(0,0,0,.18); }
+  .daily-modal-head { padding:16px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .daily-modal-head h3 { font-size:15px; font-weight:800; color:var(--text-primary); }
+  .daily-modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary); }
+  .daily-modal-body { overflow-y:auto; flex:1; padding:0; }
+  .daily-table { width:100%; border-collapse:collapse; }
+  .daily-table th { background:var(--bg); padding:10px 16px; font-size:12px; font-weight:700; color:var(--text-secondary); border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+  .daily-table th:not(:first-child) { text-align:right; }
+  .daily-table td { padding:10px 16px; font-size:13px; border-bottom:1px solid #f0f5f2; }
+  .daily-table td:not(:first-child) { text-align:right; }
+  .daily-table tr:hover td { background:var(--green-light); }
+  .daily-total-box { padding:14px 22px; border-top:2px solid var(--border); background:var(--green-light); display:flex; align-items:center; justify-content:space-between; }
+
+  /* 회원 직접 등록 모달 */
+  .reg-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; align-items:center; justify-content:center; }
+  .reg-modal-overlay.open { display:flex; }
+  .reg-modal-box { background:#fff; border-radius:16px; padding:0; width:560px; max-width:96vw; max-height:92vh; overflow-y:auto; box-shadow:0 12px 48px rgba(0,0,0,.18); }
+  .reg-modal-head { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; }
+  .reg-modal-head h3 { font-size:15px; font-weight:800; color:var(--text-primary); }
+  .reg-modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary); padding:0 4px; line-height:1; }
+  .reg-modal-body { padding:20px 24px; }
+  .reg-section-title { font-size:11px; font-weight:800; color:var(--green-dark); margin:16px 0 10px; letter-spacing:.3px; }
+  .reg-section-title:first-child { margin-top:0; }
+  .reg-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .reg-grid.full { grid-template-columns:1fr; }
+  .reg-field { display:flex; flex-direction:column; gap:4px; }
+  .reg-field label { font-size:11.5px; font-weight:700; color:var(--text-secondary); }
+  .reg-field input,.reg-field select,.reg-field textarea { border:1.5px solid var(--border); border-radius:8px; padding:9px 12px; font-size:13.5px; font-family:inherit; color:var(--text-primary); outline:none; background:#fff; }
+  .reg-field input:focus,.reg-field select:focus { border-color:var(--green-accent); }
+  .reg-modal-footer { padding:14px 24px; border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; position:sticky; bottom:0; background:#fff; }
+  .reg-submit-btn { flex:1; padding:12px; background:var(--green-dark); color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; }
+  .reg-submit-btn:hover { background:#155224; }
+  .reg-cancel-btn { padding:12px 20px; background:#fff; color:var(--text-secondary); border:1.5px solid var(--border); border-radius:8px; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer; }
+  .reg-err { color:#e74c3c; font-size:12px; font-weight:600; display:none; }
+
   /* 그룹 모달 */
   .group-list-manage { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; max-height:220px; overflow-y:auto; }
   .group-item-row { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:#fafafa; }
@@ -297,18 +335,20 @@
           <div class="fm-field"><label>사업소득 연말정산 건수</label><input type="number" id="fm-bycnt" min="0" value="0" oninput="fmRecalc()" style="width:80px"/></div>
         </div>
       </div>
-      <!-- ④ 이자·배당 -->
-      <div class="fm-block">
+      <!-- ④ 이자·배당 + ⑤ 그외 추가소득 (나란히) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fm-block" style="margin-bottom:0">
         <div class="fm-block-title">④ 이자·배당</div>
         <div class="fm-row">
           <div class="fm-field"><label>이자·배당 금액 (원)</label><input type="text" id="fm-iamt" placeholder="없으면 비워두세요" inputmode="numeric" oninput="fmFmt(this);fmRecalc()"/></div>
         </div>
       </div>
-      <!-- ⑤ 그외 추가소득 -->
-      <div class="fm-block">
+      <div class="fm-block" style="margin-bottom:0">
         <div class="fm-block-title">⑤ 그외 추가소득 <span style="font-size:10px;font-weight:400;color:var(--text-secondary)">(사업자등록 수수료표 기준 자동계산)</span></div>
         <div class="fm-row">
-          <div class="fm-field"><label>소득 종류</label><input type="text" id="fm-etctype" placeholder="예) 배달대행 소득" style="width:180px"/></div>
+          <div class="fm-field"><label>소득 종류</label><input type="text" id="fm-etctype" placeholder="예) 배달대행 소득" style="width:100%"/></div>
+        </div>
+        <div class="fm-row">
           <div class="fm-field"><label>매출액 (원)</label><input type="text" id="fm-etcamt" placeholder="없으면 비워두세요" inputmode="numeric" oninput="fmFmt(this);fmCalcEtc()"/></div>
           <div class="fm-field"><label>장부구분</label>
             <div class="fm-radio-group">
@@ -319,6 +359,7 @@
           <div class="fm-field"><label>수수료 <span style="font-size:10px;color:var(--text-secondary)">자동·수정가능</span></label><input type="text" id="fm-etcfee" placeholder="-" inputmode="numeric" oninput="fmFmt(this);fmRecalc()"/></div>
         </div>
         <div class="fm-warn-box" id="fm-etcwarn">⚠️ 7,500만원 초과 — 실장님과 상의 후 최종 수수료에 직접 입력해주세요.</div>
+      </div>
       </div>
       <!-- 내역 -->
       <div class="fm-breakdown" id="fm-bd"></div>
@@ -332,6 +373,82 @@
       <button class="fm-save-btn" onclick="fmSave()">💾 저장 후 메모에 입력</button>
       <button class="fm-cancel-btn" onclick="closeFeeModal()">취소</button>
       <span id="fm-ok" style="color:var(--green-accent);font-size:13px;font-weight:600;display:none">✓ 메모에 입력됨</span>
+    </div>
+  </div>
+</div>
+
+<!-- 날짜별 접수 현황 팝업 -->
+<div class="daily-modal-overlay" id="daily-modal" onclick="if(event.target===this)closeDailyModal()">
+  <div class="daily-modal-box">
+    <div class="daily-modal-head">
+      <h3>📊 날짜별 접수·입금 현황</h3>
+      <button class="daily-modal-close" onclick="closeDailyModal()">×</button>
+    </div>
+    <div class="daily-modal-body">
+      <table class="daily-table">
+        <thead><tr>
+          <th>날짜</th>
+          <th>접수 건수</th>
+          <th>입금 건수</th>
+          <th>입금 합계</th>
+        </tr></thead>
+        <tbody id="daily-tbody"></tbody>
+      </table>
+    </div>
+    <div class="daily-total-box">
+      <span style="font-size:13px;font-weight:700;color:var(--green-dark)">2025년 총 입금 누계</span>
+      <span style="font-size:18px;font-weight:800;color:var(--green-dark)" id="daily-total-fee">-</span>
+    </div>
+  </div>
+</div>
+
+<!-- 회원 직접 등록 모달 -->
+<div class="reg-modal-overlay" id="reg-modal" onclick="if(event.target===this)closeRegModal()">
+  <div class="reg-modal-box">
+    <div class="reg-modal-head">
+      <h3>➕ 회원 직접 등록</h3>
+      <button class="reg-modal-close" onclick="closeRegModal()">×</button>
+    </div>
+    <div class="reg-modal-body">
+      <div class="reg-section-title">기본 정보</div>
+      <div class="reg-grid">
+        <div class="reg-field"><label>성명 <span style="color:#e74c3c">*</span></label><input type="text" id="reg-name" placeholder="홍길동"/></div>
+        <div class="reg-field"><label>신고 연도 <span style="color:#e74c3c">*</span></label>
+          <select id="reg-year"><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option></select>
+        </div>
+        <div class="reg-field"><label>주민등록번호 <span style="color:#e74c3c">*</span></label><input type="text" id="reg-jumin" placeholder="000000-0000000" maxlength="14"/></div>
+        <div class="reg-field"><label>연락처 <span style="color:#e74c3c">*</span></label><input type="text" id="reg-phone" placeholder="010-0000-0000" maxlength="13"/></div>
+      </div>
+      <div class="reg-grid full" style="margin-top:12px">
+        <div class="reg-field"><label>주소 <span style="color:#e74c3c">*</span></label><input type="text" id="reg-address" placeholder="도로명 주소 입력"/></div>
+      </div>
+      <div class="reg-section-title">환급 계좌</div>
+      <div class="reg-grid">
+        <div class="reg-field"><label>은행 <span style="color:#e74c3c">*</span></label>
+          <select id="reg-bank">
+            <option value="">-- 선택 --</option>
+            <option>국민은행</option><option>신한은행</option><option>우리은행</option><option>하나은행</option><option>농협은행</option><option>기업은행</option>
+            <option>카카오뱅크</option><option>토스뱅크</option><option>케이뱅크</option><option>SC제일은행</option><option>씨티은행</option><option>대구은행</option>
+            <option>부산은행</option><option>경남은행</option><option>광주은행</option><option>전북은행</option><option>제주은행</option><option>우체국</option>
+            <option>새마을금고</option><option>신협</option>
+          </select>
+        </div>
+        <div class="reg-field"><label>계좌번호 <span style="color:#e74c3c">*</span></label><input type="text" id="reg-account" placeholder="계좌번호 입력"/></div>
+      </div>
+      <div class="reg-section-title">홈택스 정보 <span style="font-size:10px;font-weight:400;color:var(--text-secondary)">(선택)</span></div>
+      <div class="reg-grid">
+        <div class="reg-field"><label>홈택스 아이디</label><input type="text" id="reg-htId" placeholder="없으면 비워두세요"/></div>
+        <div class="reg-field"><label>홈택스 비밀번호</label><input type="text" id="reg-htPw" placeholder="없으면 비워두세요"/></div>
+      </div>
+      <div class="reg-section-title">메모 <span style="font-size:10px;font-weight:400;color:var(--text-secondary)">(선택)</span></div>
+      <div class="reg-grid full">
+        <div class="reg-field"><textarea id="reg-memo" rows="2" style="resize:vertical" placeholder="특이사항 등"></textarea></div>
+      </div>
+      <div class="reg-err" id="reg-err">필수 항목을 모두 입력해주세요.</div>
+    </div>
+    <div class="reg-modal-footer">
+      <button class="reg-cancel-btn" onclick="closeRegModal()">취소</button>
+      <button class="reg-submit-btn" id="reg-submit-btn" onclick="submitRegister()">💾 등록하기</button>
     </div>
   </div>
 </div>
@@ -406,6 +523,7 @@
   <div class="topbar">
     <h1>접수 관리</h1>
     <div class="topbar-right">
+      <button class="btn btn-outline" id="reg-btn" onclick="openRegModal()" style="background:var(--green-dark);color:#fff;border-color:var(--green-dark);display:none">➕ 회원 등록</button>
       <button class="btn btn-outline" id="excel-btn" onclick="exportCSV()" style="display:none">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         전체 엑셀
@@ -436,19 +554,19 @@
     <div class="stats-row" id="stats-row">
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg></div>
-        <div class="stat-label">전체 접수</div><div class="stat-value" id="stat-total">-</div><div class="stat-sub">누적 건수</div>
+        <div class="stat-label">2025년 접수</div><div class="stat-value" id="stat-total">-</div><div class="stat-sub">2025년 누적</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
-        <div class="stat-label">고객 수</div><div class="stat-value" id="stat-customers" style="color:var(--green-accent)">-</div><div class="stat-sub">고유 고객</div>
+        <div class="stat-label">2025년 고객 수</div><div class="stat-value" id="stat-customers" style="color:var(--green-accent)">-</div><div class="stat-sub">2025년 고유 고객</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="openDailyModal()" style="cursor:pointer" title="클릭하면 날짜별 상세 보기">
         <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
-        <div class="stat-label">이번달 접수</div><div class="stat-value" id="stat-month">-</div><div class="stat-sub">당월 신규</div>
+        <div class="stat-label">오늘 접수 <span style="font-size:10px;color:var(--green-accent)">📊 클릭</span></div><div class="stat-value" id="stat-today">-</div><div class="stat-sub">당일 신규</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
-        <div class="stat-label">처리 완료</div><div class="stat-value" id="stat-done">-</div><div class="stat-sub">신고 완료</div>
+        <div class="stat-label">처리 완료</div><div class="stat-value" id="stat-done">-</div><div class="stat-sub">신고 완료 (2025년)</div>
       </div>
     </div>
 
@@ -488,6 +606,99 @@ var currentPage=1, PAGE_SIZE=50;
 var searchTimer=null, pollingTimer=null, autoSaveTimers={};
 var knownIds=new Set();
 var printedSet=new Set();
+
+// ── 날짜별 접수·입금 현황 팝업 ────────────────────────────────
+function openDailyModal(){
+  var days={};
+  allRecords.filter(function(r){return String(r.year)==='2025';}).forEach(function(r){
+    var d=r.date?r.date.substring(0,10):'';
+    if(!d)return;
+    if(!days[d])days[d]={count:0,paidCount:0,paidTotal:0};
+    days[d].count++;
+    if(r.feePaidDate){
+      days[d].paidCount++;
+      days[d].paidTotal+=Number(r.fee)||0;
+    }
+  });
+  var sorted=Object.keys(days).sort(function(a,b){return b>a?1:-1;});
+  var dayNames=['일','월','화','수','목','금','토'];
+  var today=new Date();
+  var todayStr=today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
+  var html='';
+  sorted.forEach(function(d){
+    var v=days[d];
+    var parts=d.split('.');
+    var dt=parts.length===3?new Date(parts[0],parts[1]-1,parts[2]):null;
+    var dow=dt?dayNames[dt.getDay()]:'';
+    var dowColor=dt?(dt.getDay()===0?'color:#e74c3c':dt.getDay()===6?'color:#2980b9':'color:#888'):'';
+    var isToday=(d===todayStr);
+    html+='<tr'+(isToday?' style="background:#fffde7"':'')+'>'+
+      '<td style="font-weight:'+(isToday?'700':'400')+'">'+(isToday?'🟡 ':'')+d+' <span style="font-size:12px;font-weight:700;'+dowColor+'">'+dow+'</span></td>'+
+      '<td style="font-weight:700">'+v.count+'건</td>'+
+      '<td>'+(v.paidCount?v.paidCount+'건':'-')+'</td>'+
+      '<td style="color:'+(v.paidTotal?'var(--green-dark)':'#aaa')+';font-weight:'+(v.paidTotal?'700':'400')+'">'+(v.paidTotal?v.paidTotal.toLocaleString('ko-KR')+'원':'-')+'</td>'+
+      '</tr>';
+  });
+  document.getElementById('daily-tbody').innerHTML=html||'<tr><td colspan="4" style="text-align:center;color:#aaa;padding:24px">데이터가 없습니다.</td></tr>';
+  var total2025=allRecords.filter(function(r){return String(r.year)==='2025'&&r.feePaidDate;}).reduce(function(s,r){return s+(Number(r.fee)||0);},0);
+  document.getElementById('daily-total-fee').textContent=total2025?total2025.toLocaleString('ko-KR')+'원':'0원';
+  document.getElementById('daily-modal').classList.add('open');
+}
+function closeDailyModal(){
+  document.getElementById('daily-modal').classList.remove('open');
+}
+
+// ── 회원 직접 등록 ────────────────────────────────────────────
+function openRegModal(){
+  ['reg-name','reg-jumin','reg-phone','reg-address','reg-account','reg-htId','reg-htPw','reg-memo'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('reg-bank').value='';
+  document.getElementById('reg-year').value='2025';
+  document.getElementById('reg-err').style.display='none';
+  var btn=document.getElementById('reg-submit-btn');
+  btn.textContent='💾 등록하기'; btn.disabled=false;
+  document.getElementById('reg-modal').classList.add('open');
+  setTimeout(function(){document.getElementById('reg-name').focus();},100);
+  document.getElementById('reg-jumin').oninput=function(){
+    var v=this.value.replace(/[^0-9]/g,'');
+    if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6,13);
+    this.value=v;
+  };
+  document.getElementById('reg-phone').oninput=function(){
+    var v=this.value.replace(/[^0-9]/g,'');
+    if(v.length>3&&v.length<=7)v=v.slice(0,3)+'-'+v.slice(3);
+    else if(v.length>7)v=v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7,11);
+    this.value=v;
+  };
+}
+function closeRegModal(){document.getElementById('reg-modal').classList.remove('open');}
+function submitRegister(){
+  var name=document.getElementById('reg-name').value.trim();
+  var jumin=document.getElementById('reg-jumin').value.trim();
+  var phone=document.getElementById('reg-phone').value.trim();
+  var address=document.getElementById('reg-address').value.trim();
+  var bank=document.getElementById('reg-bank').value;
+  var account=document.getElementById('reg-account').value.trim();
+  var year=document.getElementById('reg-year').value;
+  var htId=document.getElementById('reg-htId').value.trim();
+  var htPw=document.getElementById('reg-htPw').value.trim();
+  var memo=document.getElementById('reg-memo').value.trim();
+  var errEl=document.getElementById('reg-err');
+  if(!name||!jumin||!phone||!address||!bank||!account){errEl.style.display='block';return;}
+  errEl.style.display='none';
+  var btn=document.getElementById('reg-submit-btn');
+  btn.textContent='등록 중...'; btn.disabled=true;
+  fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
+    action:'submit',name:name,jumin:jumin,phone:phone,address:address,
+    bank:bank,account:account,year:year,htId:htId,htPw:htPw,memo:memo,
+    registeredBy:currentManagerName
+  })})
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(res.ok){closeRegModal();alert('✅ ['+name+'] 님이 등록되었습니다!');loadRecords();}
+    else{btn.textContent='💾 등록하기';btn.disabled=false;alert('등록 실패: '+(res.msg||'오류'));}
+  })
+  .catch(function(){btn.textContent='💾 등록하기';btn.disabled=false;alert('네트워크 오류. 다시 시도해주세요.');});
+}
 
 // ── 그룹 관리 ────────────────────────────────────────────────
 var customGroups=['기장거래처','블랙리스트','VIP','신규','재의뢰'];
@@ -555,8 +766,8 @@ function doLogin(){
     document.getElementById('admin-name').textContent=currentManagerName;
     document.getElementById('admin-role').textContent=isAdmin?'전체 권한':'조회·인쇄';
     document.getElementById('admin-avatar').textContent=currentManagerName.charAt(0)||'?';
-  if(isAdmin){document.getElementById('excel-btn').style.display='flex';document.getElementById('unpaid-btn').style.display='flex';}
-  if(!isAdmin){document.getElementById('stats-row').style.display='none';}
+  if(isAdmin){document.getElementById('excel-btn').style.display='flex';document.getElementById('unpaid-btn').style.display='flex';document.getElementById('reg-btn').style.display='flex';}
+  if(!isAdmin){document.getElementById('stats-row').style.display='none';document.getElementById('reg-btn').style.display='flex';}
   if(!isAdmin) document.getElementById('change-name-btn').style.display='block';
   document.getElementById('year-filter').value='2025';
   loadRecords();
@@ -665,11 +876,12 @@ function startPolling(){
 
 // ── 통계 ─────────────────────────────────────────────────────
 function updateStats(){
-  document.getElementById('stat-total').textContent=allRecords.length;
-  document.getElementById('stat-customers').textContent=new Set(allRecords.map(function(r){return r.jumin;})).size;
-  var now=new Date(), ym=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0');
-  document.getElementById('stat-month').textContent=allRecords.filter(function(r){return r.date&&r.date.startsWith(ym);}).length;
-  document.getElementById('stat-done').textContent=allRecords.filter(function(r){return r.filingDate&&r.filingDate!=='';}).length;
+  var r2025=allRecords.filter(function(r){return String(r.year)==='2025';});
+  document.getElementById('stat-total').textContent=r2025.length;
+  document.getElementById('stat-customers').textContent=new Set(r2025.map(function(r){return r.jumin;})).size;
+  var today=new Date(), td=today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
+  document.getElementById('stat-today').textContent=allRecords.filter(function(r){return r.date&&r.date.startsWith(td);}).length;
+  document.getElementById('stat-done').textContent=r2025.filter(function(r){return r.filingDate&&r.filingDate!=='';}).length;
 }
 
 // ── 검색/필터 ─────────────────────────────────────────────────
@@ -867,20 +1079,23 @@ function renderTable(){
     html+='<div class="fm-field"><label>사업소득 연말정산 금액 (원)</label><input type="text" id="fc-byamt-'+rid+'" placeholder="없으면 비워두세요" inputmode="numeric" oninput="fcFmt(this);if(!Number(this.value.replace(/,/g,\'\'))){var bc=document.getElementById(\'fc-bycnt-'+rid+'\');if(bc)bc.value=0;}fcRecalc(\''+rid+'\');markDirtyFee(\''+rid+'\')" /></div>';
     html+='<div class="fm-field"><label>사업소득 연말정산 건수</label><input type="number" id="fc-bycnt-'+rid+'" min="0" value="0" oninput="fcRecalc(\''+rid+'\');markDirtyFee(\''+rid+'\')" style="width:80px" /></div>';
     html+='</div></div>';
-    // ④ 이자·배당
-    html+='<div class="fm-block"><div class="fm-block-title">④ 이자·배당</div>';
+    // ④ 이자·배당 + ⑤ 그외 추가소득 (나란히)
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">';
+    html+='<div class="fm-block" style="margin-bottom:0"><div class="fm-block-title">④ 이자·배당</div>';
     html+='<div class="fm-row">';
     html+='<div class="fm-field"><label>이자·배당 금액 (원)</label><input type="text" id="fc-iamt-'+rid+'" placeholder="없으면 비워두세요" inputmode="numeric" oninput="fcFmt(this);fcRecalc(\''+rid+'\');markDirtyFee(\''+rid+'\')" /></div>';
     html+='</div></div>';
-    // ⑤ 그외 추가소득 (사업자등록 수수료표 기준 자동계산)
-    html+='<div class="fm-block"><div class="fm-block-title">⑤ 그외 추가소득 <span style="font-size:10px;font-weight:400;color:var(--text-secondary)">(사업자등록 수수료표 기준 자동계산)</span></div>';
+    html+='<div class="fm-block" style="margin-bottom:0"><div class="fm-block-title">⑤ 그외 추가소득 <span style="font-size:10px;font-weight:400;color:var(--text-secondary)">(사업자등록 수수료표 기준 자동계산)</span></div>';
     html+='<div class="fm-row">';
-    html+='<div class="fm-field"><label>소득 내용</label><input type="text" id="fc-etctype-'+rid+'" placeholder="예) 배달대행 소득" style="width:160px" oninput="markDirtyFee(\''+rid+'\')" /></div>';
+    html+='<div class="fm-field"><label>소득 내용</label><input type="text" id="fc-etctype-'+rid+'" placeholder="예) 배달대행 소득" style="width:100%" oninput="markDirtyFee(\''+rid+'\')" /></div>';
+    html+='</div>';
+    html+='<div class="fm-row">';
     html+='<div class="fm-field"><label>매출액 (원)</label><input type="text" id="fc-etcamt-'+rid+'" placeholder="없으면 비워두세요" inputmode="numeric" oninput="fcFmt(this);fcCalcEtc(\''+rid+'\');markDirtyFee(\''+rid+'\')" /></div>';
     html+='<div class="fm-field"><label>장부구분</label><div class="fm-radio-group"><label><input type="radio" name="fc-etcjb-'+rid+'" value="간편장부" onchange="fcCalcEtc(\''+rid+'\')"> 간편장부</label><label><input type="radio" name="fc-etcjb-'+rid+'" value="복식장부" onchange="fcCalcEtc(\''+rid+'\')"> 복식장부</label></div></div>';
     html+='<div class="fm-field"><label>수수료 <span style="font-size:10px;color:var(--text-secondary)">자동·수정가능</span></label><input type="text" id="fc-etcfee-'+rid+'" placeholder="-" inputmode="numeric" oninput="fcFmt(this);fcRecalc(\''+rid+'\');markDirtyFee(\''+rid+'\')" style="background:#e8f5ec;border:1px solid #b2dfdb;font-weight:700" /></div>';
     html+='</div>';
     html+='<div class="fm-warn-box" id="fc-etcwarn-'+rid+'">⚠️ 7,500만원 초과 — 실장님과 상의 후 최종 수수료에 직접 입력해주세요.</div>';
+    html+='</div>';
     html+='</div>';
     // ⑥ 고액자 (전체 공개)
     html+='<div class="fm-block" style="border:2px solid #8e44ad">';
