@@ -434,7 +434,7 @@ function calc() {
     const ir = parseFloat(document.getElementById('income_rate').value) || 15;
     result = calcRATE(rev, ded, pen, umb, ir);
     // 소득금액 자동계산 (소득율 방식)
-    const incomeAmt = Math.round(rev * ir / 100);
+    const incomeAmt = Math.floor(rev * ir / 100);
     document.getElementById('income_amount_display').value = incomeAmt.toLocaleString('ko-KR') + ' 원';
     rateGrid.classList.remove('crm-mode');
     rateFieldWrap.classList.remove('hidden');
@@ -459,7 +459,7 @@ function calc() {
 
   // CRM 모드: 소득금액 = 수입금액 − 필요경비
   if (!isRate) {
-    const crmIncomeAmt = Math.max(rev - safeExp, 0);
+    const crmIncomeAmt = Math.floor(Math.max(rev - safeExp, 0));
     document.getElementById('income_amount_display').value = crmIncomeAmt.toLocaleString('ko-KR') + ' 원';
   }
 
