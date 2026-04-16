@@ -1510,7 +1510,7 @@ function fcCalc33(income){
   else if(income<=59990000){refund=base*0.75;fee=refund*0.15;}
   else if(income<=64990000){refund=base*0.70;fee=refund*0.17;}
   else if(income<=69990000){refund=base*0.60;fee=refund*0.17;}
-  else if(income<=74000000){refund=base*0.50;fee=250000;}
+  else if(income<=74990000){refund=base*0.50;fee=250000;}
   else{refund=0;fee=0;}
   return{refund:refund,fee:Math.floor(fee/1000)*1000};
 }
@@ -1804,7 +1804,7 @@ function fmCalc33(income){
   else if(income<=59990000){refund=base*0.75;fee=refund*0.15;}
   else if(income<=64990000){refund=base*0.70;fee=refund*0.17;}
   else if(income<=69990000){refund=base*0.60;fee=refund*0.17;}
-  else if(income<=74000000){refund=base*0.50;fee=250000;}
+  else if(income<=74990000){refund=base*0.50;fee=250000;}
   else{refund=0;fee=0;}
   return{refund:refund,fee:Math.floor(fee/1000)*1000};
 }
