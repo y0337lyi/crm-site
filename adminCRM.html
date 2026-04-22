@@ -227,13 +227,13 @@
 <body>
 <!-- 메모 팝업 모달 -->
 <div class="modal-overlay" id="memo-modal" onclick="if(event.target===this)closeMemoModal()" style="z-index:500">
-  <div class="modal-box" style="width:680px;max-width:96vw">
+  <div class="modal-box" style="width:720px;max-width:96vw">
     <h3>📝 메모</h3>
     <p id="memo-modal-label" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px"></p>
-    <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:4px">기존 메모</div>
-    <textarea id="memo-modal-existing" readonly style="width:100%;height:260px;border:1.5px solid var(--border);border-radius:8px;padding:12px;font-size:13px;font-family:inherit;line-height:1.7;resize:none;outline:none;background:#f9f9f9;color:var(--text-primary)"></textarea>
+    <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:6px">기존 메모 <span style="font-weight:400">(각 줄 직접 수정 또는 🗑️ 삭제 가능)</span></div>
+    <div id="memo-modal-list" style="max-height:300px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px;padding:8px;background:#f9f9f9;margin-bottom:4px"></div>
     <div style="font-size:11px;font-weight:700;color:var(--green-dark);margin:10px 0 4px">새 메모 추가 <span style="font-weight:400;color:var(--text-secondary)">(입력 시 오늘 날짜 자동 추가)</span></div>
-    <textarea id="memo-modal-new" placeholder="새로 추가할 내용을 입력하세요..." style="width:100%;height:120px;border:1.5px solid var(--border);border-radius:8px;padding:12px;font-size:13px;font-family:inherit;line-height:1.7;resize:vertical;outline:none;" onfocus="this.style.borderColor='var(--green-accent)'" onblur="this.style.borderColor=''"></textarea>
+    <textarea id="memo-modal-new" placeholder="새로 추가할 내용을 입력하세요..." style="width:100%;height:90px;border:1.5px solid var(--border);border-radius:8px;padding:12px;font-size:13px;font-family:inherit;line-height:1.7;resize:vertical;outline:none;" onfocus="this.style.borderColor='var(--green-accent)'" onblur="this.style.borderColor=''"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="modal-btn-primary" onclick="saveMemoModal()" style="margin-bottom:0">💾 저장</button>
       <button class="modal-btn-secondary" onclick="closeMemoModal()">닫기</button>
@@ -734,22 +734,51 @@ function openMemoModal(id,yrid){
   var r=allRecords.find(function(x){return x.id===id;});
   document.getElementById('memo-modal-label').textContent=r?r.name+' / '+r.year+'년':'';
   var ta=document.getElementById('pi-memo-'+yrid);
-  document.getElementById('memo-modal-existing').value=ta?ta.value:'';
+  renderMemoList(ta?ta.value:'');
   document.getElementById('memo-modal-new').value='';
   document.getElementById('memo-modal').classList.add('open');
   setTimeout(function(){document.getElementById('memo-modal-new').focus();},100);
 }
+function _memoEscape(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function renderMemoList(text){
+  var listEl=document.getElementById('memo-modal-list');
+  var lines=text?text.split('\n').filter(function(l){return l.trim()!=='';}):[];
+  if(!lines.length){listEl.innerHTML='<div style="color:#aaa;font-size:13px;padding:24px;text-align:center">기존 메모가 없습니다</div>';return;}
+  var html='';
+  lines.forEach(function(line){
+    html+='<div class="memo-line-row" style="display:flex;gap:6px;align-items:stretch;margin-bottom:6px">';
+    html+='<textarea class="memo-line-input" rows="1" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;line-height:1.6;resize:none;outline:none;background:#fff;overflow:hidden">'+_memoEscape(line)+'</textarea>';
+    html+='<button onclick="deleteMemoLine(this)" title="삭제" style="padding:0 12px;background:#fff;color:#e74c3c;border:1.5px solid #f5c6c6;border-radius:6px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0">🗑️</button>';
+    html+='</div>';
+  });
+  listEl.innerHTML=html;
+  setTimeout(function(){listEl.querySelectorAll('.memo-line-input').forEach(function(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';});},0);
+}
+function deleteMemoLine(btn){
+  var row=btn.closest('.memo-line-row');
+  if(row)row.parentNode.removeChild(row);
+  var listEl=document.getElementById('memo-modal-list');
+  if(!listEl.querySelectorAll('.memo-line-row').length){
+    listEl.innerHTML='<div style="color:#aaa;font-size:13px;padding:24px;text-align:center">기존 메모가 없습니다</div>';
+  }
+}
 function saveMemoModal(){
   var newText=document.getElementById('memo-modal-new').value.trim();
-  var existing=document.getElementById('memo-modal-existing').value;
   var ta=document.getElementById('pi-memo-'+_memoTargetYrid);
   if(!ta){closeMemoModal();return;}
+  var rows=document.querySelectorAll('#memo-modal-list .memo-line-row');
+  var lines=[];
+  rows.forEach(function(row){
+    var t=row.querySelector('.memo-line-input');
+    if(t&&t.value.trim())lines.push(t.value.trim());
+  });
   if(newText){
     var today=new Date();
     var dateStr='['+today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0')+'] ';
-    ta.value=existing.trim()?(existing.trim()+'\n'+dateStr+newText):dateStr+newText;
-    markDirtyProc(_memoTargetId,_memoTargetYrid);
+    lines.push(dateStr+newText);
   }
+  ta.value=lines.join('\n');
+  markDirtyProc(_memoTargetId,_memoTargetYrid);
   closeMemoModal();
 }
 function closeMemoModal(){document.getElementById('memo-modal').classList.remove('open');}
@@ -1020,6 +1049,7 @@ function deleteRecord(id,name){
   .then(function(res){if(res.ok){alert('삭제 완료!');allRecords=allRecords.filter(function(x){return x.id!==id;});filterTable();updateStats();}else alert('삭제 실패: '+(res.msg||'오류'));}).catch(function(){alert('오류 발생');});
 }
 function saveProc(id,rid){
+  if(autoSaveTimers['proc-'+rid]){clearTimeout(autoSaveTimers['proc-'+rid]);delete autoSaveTimers['proc-'+rid];}
   var r=allRecords.find(function(x){return x.id===id;});if(!r)return;
   r.income=document.getElementById('pi-income-'+rid).value.replace(/,/g,'');
   r.fee=document.getElementById('pi-fee-'+rid).value.replace(/,/g,'');
@@ -1162,7 +1192,7 @@ function fcReset(rid){
   fcState[rid]={auto33:0,autoBiz:0,autoFinal:0,is33M:false,isBizM:false,isFinalM:false};
 }
 function fcFmt(el){var r=el.value.replace(/[^0-9]/g,'');el.value=r?Number(r).toLocaleString('ko-KR'):'';}
-function fcToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fcToday(){var d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');}
 function fcG(rid,key){return document.getElementById('fc-'+key+'-'+rid);}
 function fcCalc33(income){
   var base=income*0.033,refund,fee;
@@ -1257,6 +1287,7 @@ function fcUpdateTags(rid){
   document.getElementById('fc-tags-'+rid).innerHTML=tags.join(' ');
 }
 function fcSave(rid){
+  if(autoSaveTimers['fee-'+rid]){clearTimeout(autoSaveTimers['fee-'+rid]);delete autoSaveTimers['fee-'+rid];}
   var s=fcState[rid];if(!s)return;
   var finalRaw=fcG(rid,'final').value.replace(/,/g,'');
   if(!finalRaw){alert('수수료를 먼저 계산해주세요.');return;}
@@ -1283,7 +1314,7 @@ function fcSave(rid){
   var memoEl=document.getElementById('pi-memo-'+yrid);
   if(memoEl){
     var existingLines=memoEl.value.trim()?memoEl.value.trim().split('\n'):[];
-    var filteredLines=existingLines.filter(function(line){return!/^\[\d{4}\.\d{2}\.\d{2}\].*문자 발송$/.test(line.trim());});
+    var filteredLines=existingLines.filter(function(line){return!/^\[\d{4}[.\-]\d{2}[.\-]\d{2}\].*문자 발송$/.test(line.trim());});
     filteredLines.push(newLine);memoEl.value=filteredLines.join('\n');
   }
   var ok=document.getElementById('fc-ok-'+rid);ok.style.display='inline';
@@ -1332,7 +1363,7 @@ function fmReset(){
   fmAuto33=0;fmAutoBiz=0;fmAutoFinal=0;fmIs33M=false;fmIsBizM=false;fmIsFinalM=false;
 }
 function fmFmt(el){var r=el.value.replace(/[^0-9]/g,'');el.value=r?Number(r).toLocaleString('ko-KR'):'';}
-function fmToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmToday(){var d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');}
 function fmCalc33(income){
   var base=income*0.033,refund,fee;
   if(income<=35000000){refund=base;fee=refund*0.10;}else if(income<=39990000){refund=base;fee=130000+(refund-1155000)*0.13;}
@@ -1410,7 +1441,12 @@ function fmSave(){
   if(etcfee2>0)parts.push(etctype2+' '+(etcamt2?etcamt2.toLocaleString('ko-KR')+'원 ':'')+' 수수료 '+etcfee2.toLocaleString('ko-KR')+'원');
   var newLine='['+fmToday()+'] 수수료 안내 문자 발송 ('+parts.join(', ')+')';
   var memoEl=document.getElementById('pi-memo-'+fmTargetYrid);
-  if(memoEl)memoEl.value=memoEl.value.trim()?memoEl.value.trim()+'\n'+newLine:newLine;
+  if(memoEl){
+    var existingLines=memoEl.value.trim()?memoEl.value.trim().split('\n'):[];
+    var filteredLines=existingLines.filter(function(line){return!/^\[\d{4}[.\-]\d{2}[.\-]\d{2}\].*문자 발송/.test(line.trim());});
+    filteredLines.push(newLine);
+    memoEl.value=filteredLines.join('\n');
+  }
   document.getElementById('fm-ok').style.display='inline';
   setTimeout(function(){closeFeeModal();},1200);
 }
