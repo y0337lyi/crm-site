@@ -1461,7 +1461,7 @@ function generateSMS(id,yrid,year){
   var income=incomeRaw?Number(incomeRaw).toLocaleString('ko-KR')+'원':'미입력';
   var refund=refundRaw?Number(refundRaw).toLocaleString('ko-KR')+'원':'미입력';
   var fee=feeRaw?Number(feeRaw).toLocaleString('ko-KR')+'원':'미입력';
-  var bank=r.bank||'국민은행',account=r.account||'',name=r.name||'';
+  var bank='국민은행',account='929001-01-283399',name='이서연';
   var lines=[];
   var rid2=r.jumin.replace(/[^a-zA-Z0-9]/g,'_');
   var inc33El=document.getElementById('fc-i33-'+rid2);var incBizEl=document.getElementById('fc-ibiz-'+rid2);
