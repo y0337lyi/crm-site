@@ -823,7 +823,7 @@ function startPolling(){
         document.getElementById('new-alert').style.display='block';
       }
     }).catch(function(){});
-  },180000);
+  },1200000);
 }
 function updateStats(){
   var r2025=allRecords.filter(function(r){return String(r.year)==='2025';});
