@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>신고 접수하기 – 종합소득세 신고대리</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="신고 접수하기 – 종합소득세 신고대리">
+<meta property="og:description" content="여기를 눌러 링크를 확인하세요.">
+<meta property="og:url" content="https://cool-dragon-440053.netlify.app/form.html">
+<meta property="og:site_name" content="종합소득세 신고대리">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green-dark: #1a5c2e; --green-mid: #2d7a45; --green-light: #e8f5ec;
+    --green-accent: #2e8b4a; --green-step: #3aaa5e; --step-inactive: #b0cebb;
+    --red-hint: #e74c3c; --border: #d5e8db; --text-primary: #1a2e22;
+    --text-secondary: #6b8f77; --text-placeholder: #aac4b2; --bg: #f5faf7;
+  }
+  body { font-family: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+  .header { background: linear-gradient(135deg,#1a5c2e 0%,#2d7a45 50%,#1e6b35 100%); padding: 22px 40px 28px; position: relative; overflow: hidden; }
+  .header::before { content:''; position:absolute; right:-60px; top:-60px; width:300px; height:300px; border-radius:50%; background:rgba(255,255,255,.04); }
+  .badge { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.2); border-radius:20px; padding:4px 12px; font-size:12px; color:rgba(255,255,255,.9); margin-bottom:14px; }
+  .badge-dot { width:7px; height:7px; background:#5edc8a; border-radius:50%; }
+  .header h1 { font-size:26px; font-weight:700; color:#fff; letter-spacing:-.5px; margin-bottom:6px; }
+  .header p { font-size:13px; color:rgba(255,255,255,.7); }
+  .body-wrap { flex:1; padding:0 40px 120px; max-width:900px; width:100%; margin:0 auto; }
+  .stepper { display:flex; align-items:center; justify-content:center; margin:24px 0 28px; }
+  .step-item { display:flex; flex-direction:column; align-items:center; gap:6px; position:relative; z-index:1; }
+  .step-circle { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; transition:all .35s; cursor:pointer; }
+  .step-circle.active { background:var(--green-step); color:#fff; box-shadow:0 0 0 4px rgba(58,170,94,.2); }
+  .step-circle.done { background:var(--green-step); color:#fff; }
+  .step-circle.inactive { background:#fff; color:var(--step-inactive); border:2px solid var(--step-inactive); }
+  .step-label { font-size:11px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
+  .step-label.active,.step-label.done { color:var(--green-step); }
+  .step-line { flex:1; height:2px; margin-bottom:18px; min-width:200px; transition:background .35s; }
+  .step-line.done { background:var(--green-step); } .step-line.pending { background:var(--border); }
+  .form-card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:28px 32px 32px; animation:fadeIn .28s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .card-header { display:flex; align-items:flex-start; gap:12px; margin-bottom:28px; padding-bottom:20px; border-bottom:1px solid var(--green-light); }
+  .card-icon { width:36px; height:36px; background:var(--green-light); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+  .card-icon svg { width:18px; height:18px; fill:var(--green-accent); }
+  .card-title h2 { font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:3px; }
+  .card-title p { font-size:12.5px; color:var(--text-secondary); }
+  .field { margin-bottom:22px; }
+  .field:last-child { margin-bottom:0; }
+  label { display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:8px; }
+  label .req { color:var(--red-hint); margin-right:2px; }
+  input[type="text"],input[type="tel"],input[type="password"] { width:100%; border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-size:14px; font-family:inherit; color:var(--text-primary); background:#fff; outline:none; transition:border-color .2s,box-shadow .2s; }
+  input::placeholder { color:var(--text-placeholder); }
+  input:focus { border-color:var(--green-step); box-shadow:0 0 0 3px rgba(58,170,94,.12); }
+  .pw-wrap { position:relative; }
+  .pw-wrap input { padding-right:44px; }
+  .pw-toggle { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-secondary); display:flex; align-items:center; padding:0; }
+  .pw-toggle svg { width:18px; height:18px; }
+  .bank-row { display:flex; gap:10px; }
+  .bank-row select { width:160px; flex-shrink:0; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:14px; font-family:inherit; color:var(--text-primary); background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%236b8f77'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 12px center; outline:none; appearance:none; cursor:pointer; transition:border-color .2s; }
+  .bank-row select:focus { border-color:var(--green-step); box-shadow:0 0 0 3px rgba(58,170,94,.12); }
+  .bank-row input { flex:1; }
+  .hint { display:flex; align-items:center; gap:5px; margin-top:6px; font-size:12px; color:var(--text-secondary); }
+  .hint.warn { color:var(--red-hint); }
+  .hint svg { width:13px; height:13px; flex-shrink:0; }
+  .info-box { background:var(--green-light); border:1px solid #c0dfc9; border-radius:10px; padding:14px 16px; margin-bottom:24px; font-size:13px; color:var(--green-dark); line-height:1.6; }
+  .info-box strong { font-weight:700; }
+  .info-box ul { margin-top:6px; padding-left:16px; }
+  .info-box ul li { margin-bottom:2px; }
+  .optional-notice { display:flex; align-items:flex-start; gap:8px; background:#fffbea; border:1px solid #f0d87a; border-radius:10px; padding:12px 14px; margin-bottom:22px; font-size:13px; color:#7a6100; line-height:1.55; }
+  .optional-tag { display:inline-block; background:var(--green-light); color:var(--green-accent); font-size:11px; font-weight:600; border-radius:4px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  .agree-box { display:flex; flex-direction:column; gap:12px; margin-bottom:22px; }
+  .agree-item { display:flex; align-items:flex-start; gap:14px; padding:16px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; transition:border-color .2s, background .2s; }
+  .agree-item:hover { background:var(--green-light); border-color:var(--green-step); }
+  .agree-item.checked { background:var(--green-light); border-color:var(--green-step); }
+  .agree-check { width:22px; height:22px; border-radius:50%; border:2px solid var(--step-inactive); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; transition:all .2s; }
+  .agree-check svg { width:11px; height:11px; opacity:0; }
+  .agree-item.checked .agree-check { background:var(--green-step); border-color:var(--green-step); }
+  .agree-item.checked .agree-check svg { opacity:1; stroke:#fff; }
+  .agree-text strong { display:block; font-size:13.5px; color:var(--text-primary); margin-bottom:4px; }
+  .agree-text p { font-size:12px; color:var(--text-secondary); line-height:1.55; }
+  .income-notice { display:flex; align-items:flex-start; gap:10px; background:#f0f7ff; border:1px solid #bdd6f0; border-radius:10px; padding:13px 15px; margin-bottom:12px; font-size:13px; color:#1a3a5c; line-height:1.6; }
+  .income-notice strong { font-weight:700; }
+  .submit-notice { display:flex; align-items:flex-start; gap:8px; background:var(--green-light); border:1px solid #c0dfc9; border-radius:10px; padding:13px 15px; font-size:13px; color:var(--green-dark); line-height:1.55; }
+  .submit-notice strong { font-weight:700; }
+  .bottom-bar { position:fixed; bottom:0; left:0; right:0; display:flex; z-index:100; }
+  .prev-btn { padding:18px 28px; background:#2d5c3a; color:rgba(255,255,255,.8); border:none; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer; display:none; align-items:center; gap:6px; transition:background .2s; }
+  .prev-btn:hover { background:#234a2e; }
+  .next-btn { flex:1; padding:18px; background:var(--green-dark); color:#fff; border:none; font-size:16px; font-weight:700; font-family:inherit; letter-spacing:.3px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .2s; }
+  .next-btn:hover { background:#155224; }
+  .next-btn:disabled { background:#aaa; cursor:not-allowed; }
+  .complete-card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:48px 32px; text-align:center; animation:fadeIn .28s ease; }
+  .complete-icon { width:72px; height:72px; background:var(--green-light); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+  .complete-icon svg { width:36px; height:36px; fill:var(--green-accent); }
+  .complete-card h2 { font-size:22px; font-weight:800; color:var(--text-primary); margin-bottom:10px; }
+  .complete-card p { font-size:14px; color:var(--text-secondary); line-height:1.7; }
+  .complete-id { display:inline-block; background:var(--green-light); color:var(--green-dark); font-size:13px; font-weight:700; border-radius:8px; padding:8px 20px; margin-top:16px; font-family:monospace; letter-spacing:1px; }
+  .addr-search-btn { display:flex; align-items:center; gap:6px; background:var(--green-dark); color:#fff; border:none; border-radius:8px; padding:11px 18px; font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer; transition:background .2s; white-space:nowrap; }
+  .addr-search-btn:hover { background:#155224; }
+  .addr-search-btn:disabled { background:#aaa; cursor:not-allowed; }
+  .addr-search-btn svg { width:15px; height:15px; fill:#fff; flex-shrink:0; }
+  .addr-row { display:flex; gap:8px; align-items:stretch; }
+  .addr-row input { flex:1; }
+  input[readonly] { background:#f5faf7; color:var(--text-primary); cursor:default; }
+  @media(max-width:600px){.header{padding:18px 20px 22px}.body-wrap{padding:0 16px 100px}.form-card{padding:20px 18px}.step-line{min-width:60px}.addr-row{flex-direction:column}.addr-search-btn{width:100%;justify-content:center;}}
+</style>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" onerror="window._daumLoadFailed=true"></script>
+</head>
+<body>
+
+<header class="header">
+  <div class="badge"><span class="badge-dot"></span>종합소득세 신고대리</div>
+  <h1>신고 접수하기</h1>
+  <p>정보를 입력하고 신고를 접수해 주세요.</p>
+</header>
+
+<div class="body-wrap">
+  <div class="stepper">
+    <div class="step-item">
+      <div class="step-circle active" id="sc1">1</div>
+      <div class="step-label active" id="sl1">기본정보</div>
+    </div>
+    <div class="step-line pending" id="line1"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="sc2">2</div>
+      <div class="step-label" id="sl2">홈택스 정보</div>
+    </div>
+    <div class="step-line pending" id="line2"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="sc3">3</div>
+      <div class="step-label" id="sl3">동의 및 제출</div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1" class="form-card">
+    <div class="card-header">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+      <div class="card-title"><h2>기본 정보</h2><p>성명, 주소, 연락처를 입력해 주세요</p></div>
+    </div>
+    <div class="field">
+      <label><span class="req">*</span>성명</label>
+      <input type="text" id="name" placeholder="홍길동" />
+    </div>
+    <div class="field">
+      <label><span class="req">*</span>주민등록번호</label>
+      <input type="text" id="jumin" placeholder="000000-0000000" maxlength="14"/>
+      <div class="hint"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>하이픈(-) 없이 숫자만 입력하셔도 됩니다</div>
+    </div>
+    <div class="field">
+      <label><span class="req">*</span>휴대폰 번호</label>
+      <input type="tel" id="phone" placeholder="010-0000-0000" />
+    </div>
+    <div class="field">
+      <label><span class="req">*</span>주민등록상 현주소</label>
+      <div class="addr-row">
+        <input type="text" id="address" placeholder="주소 검색 버튼을 눌러주세요" readonly />
+        <button class="addr-search-btn" type="button" onclick="searchAddress()">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          주소 검색
+        </button>
+      </div>
+      <div style="margin-top:8px;">
+        <input type="text" id="address-detail" placeholder="상세주소 입력 (동/호수 등)" />
+      </div>
+      <div class="hint warn" style="margin-top:6px;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>주민등록상 도로명 주소로 입력해 주세요</div>
+    </div>
+    <div class="field">
+      <label><span class="req">*</span>환급받을 계좌번호</label>
+      <div class="bank-row">
+        <select id="bank-select">
+          <option value="" disabled selected>은행 선택</option>
+          <option>국민은행</option><option>신한은행</option><option>우리은행</option>
+          <option>하나은행</option><option>농협은행</option><option>기업은행</option>
+          <option>카카오뱅크</option><option>토스뱅크</option><option>케이뱅크</option>
+          <option>SC제일은행</option><option>씨티은행</option><option>대구은행</option>
+          <option>부산은행</option><option>경남은행</option><option>광주은행</option>
+          <option>전북은행</option><option>제주은행</option><option>우체국</option>
+          <option>새마을금고</option><option>신협</option>
+        </select>
+        <input type="text" id="account-num" placeholder="계좌번호 입력 (- 없이)" maxlength="20" />
+      </div>
+      <div class="hint"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>환급금은 본인 명의 계좌로만 입금됩니다</div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" class="form-card" style="display:none;">
+    <div class="card-header">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></div>
+      <div class="card-title"><h2>홈택스 정보</h2><p>홈택스 로그인 정보를 입력해 주세요</p></div>
+    </div>
+    <div class="info-box">
+      <strong>📋 홈택스 정보가 필요한 이유</strong>
+      <ul>
+        <li>신고 대리인이 고객님의 소득·공제 자료를 조회합니다</li>
+        <li>입력하신 정보는 암호화되어 안전하게 보관됩니다</li>
+        <li>신고 완료 후 즉시 파기됩니다</li>
+      </ul>
+    </div>
+    <div class="optional-notice">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;flex-shrink:0;margin-top:1px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      홈택스 아이디·비밀번호를 모르시면 <strong>기재하지 않아도 됩니다.</strong> 나중에 담당자가 별도로 안내드립니다.
+    </div>
+    <div class="field">
+      <label>홈택스 아이디 <span class="optional-tag">선택</span></label>
+      <input type="text" id="hometax-id" placeholder="홈택스 로그인 아이디 (없으면 생략 가능)" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>홈택스 비밀번호 <span class="optional-tag">선택</span></label>
+      <div class="pw-wrap">
+        <input type="password" id="hometax-pw" placeholder="비밀번호 입력 (없으면 생략 가능)" autocomplete="off" />
+        <button class="pw-toggle" onclick="togglePw()" type="button">
+          <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" class="form-card" style="display:none;">
+    <div class="card-header">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+      <div class="card-title"><h2>동의 및 제출</h2><p>아래 내용을 확인하고 동의해 주세요</p></div>
+    </div>
+    <div class="agree-box">
+      <div class="agree-item" onclick="toggleAgree(this)">
+        <div class="agree-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="agree-text">
+          <strong>[필수] 개인정보 수집 및 이용 동의</strong>
+          <p>성명, 주민등록번호, 연락처, 주소 등의 정보를 종합소득세 신고 대리 서비스 제공 목적으로 수집·이용하는 것에 동의합니다.</p>
+        </div>
+      </div>
+      <div class="agree-item" onclick="toggleAgree(this)">
+        <div class="agree-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="agree-text">
+          <strong>[필수] 세무 대리 위임 동의</strong>
+          <p>담당 세무사에게 종합소득세 신고 업무를 위임하는 것에 동의합니다. 위임 범위는 당해 연도 종합소득세 신고에 한합니다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="income-notice">
+      <div style="font-size:16px;flex-shrink:0;margin-top:1px">💡</div>
+      <div>조회된 수입금액은 <strong>국세청</strong>에서 제공한 종합소득세 신고 도움 서비스의 수입금액이며, 최종 확인 및 책임은 <strong>본인</strong>에게 있음을 알려드립니다.</div>
+    </div>
+    <div class="submit-notice">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;flex-shrink:0;color:var(--green-accent)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      필수 항목에 동의하시면 접수가 완료됩니다. 담당자가 <strong>영업일 1~2일 내</strong> 연락드립니다.
+    </div>
+  </div>
+
+  <!-- 완료 -->
+  <div id="step-complete" style="display:none;">
+    <div class="complete-card">
+      <div class="complete-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+      <h2>접수가 완료되었습니다! 🎉</h2>
+      <p>담당자가 영업일 1~2일 내 연락드립니다.<br>접수번호를 저장해 두세요.</p>
+      <div class="complete-id" id="complete-id"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <button class="prev-btn" id="prev-btn" onclick="goPrev()">← 이전</button>
+  <button class="next-btn" id="next-btn" onclick="handleNext()">다음 단계 →</button>
+</div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuW4Nh92S2dmOixfvbqEPqy9xQYsFcFotRrOhdyCeLekWb14BjTCkrMNTtvpnp3HGX/exec';
+  const YEAR = '2025';
+  let currentStep = 1;
+
+  document.getElementById('jumin').addEventListener('input', function(e) {
+    let v = e.target.value.replace(/\D/g,'');
+    if(v.length>6) v=v.slice(0,6)+'-'+v.slice(6,13);
+    e.target.value=v;
+  });
+  document.getElementById('account-num').addEventListener('input', function(e) {
+    e.target.value=e.target.value.replace(/\D/g,'');
+  });
+
+  function togglePw(){
+    const pw=document.getElementById('hometax-pw');
+    if(pw.type==='password') pw.type='text';
+    else pw.type='password';
+  }
+
+  function updateStepper(step){
+    [1,2,3].forEach(function(i){
+      const sc=document.getElementById('sc'+i);
+      const sl=document.getElementById('sl'+i);
+      if(i<step){ sc.className='step-circle done'; sc.textContent='✓'; }
+      else if(i===step){ sc.className='step-circle active'; sc.textContent=i; }
+      else { sc.className='step-circle inactive'; sc.textContent=i; }
+      sl.className='step-label'+(i<=step?' active':'');
+    });
+    document.getElementById('line1').className='step-line '+(step>1?'done':'pending');
+    document.getElementById('line2').className='step-line '+(step>2?'done':'pending');
+    document.getElementById('prev-btn').style.display=step>1?'flex':'none';
+  }
+
+  function markError(el){ el.style.borderColor='#e74c3c'; el.style.boxShadow='0 0 0 3px rgba(231,76,60,.1)'; }
+  function clearError(el){ el.style.borderColor=''; el.style.boxShadow=''; }
+
+  function validateStep1(){
+    let ok=true;
+    ['name','jumin','phone','address','account-num'].forEach(function(id){
+      const el=document.getElementById(id);
+      el.value.trim()?clearError(el):(markError(el),ok=false);
+    });
+    const b=document.getElementById('bank-select');
+    b.value?clearError(b):(markError(b),ok=false);
+    return ok;
+  }
+
+  function handleNext(){
+    if(currentStep===1){
+      if(!validateStep1()) return;
+      // ★ 1단계 → 2단계 넘어가기 전 즉시 중복 체크
+      const btn = document.getElementById('next-btn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '확인 중...';
+      const jumin = document.getElementById('jumin').value.trim();
+      
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'checkDuplicate', jumin: jumin, year: YEAR })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        btn.disabled = false;
+        btn.textContent = originalText;
+        if(res.duplicate){
+          alert('⚠️ 이미 ' + YEAR + '년 신고가 접수된 고객입니다.\n\n중복 접수는 불가능합니다.\n문의사항은 담당자에게 연락해 주세요.');
+          return;
+        }
+        // 중복 아니면 다음 단계로
+        showStep(2);
+      })
+      .catch(function(){
+        // 네트워크 오류 시에도 진행은 가능 (마지막에 한 번 더 체크함)
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showStep(2);
+      });
+    } else if(currentStep===2){
+      showStep(3);
+    } else if(currentStep===3){
+      const items = document.querySelectorAll('.agree-item');
+      const allChecked = Array.from(items).every(function(i){ return i.classList.contains('checked'); });
+      if(!allChecked){ alert('필수 동의 항목을 모두 체크해 주세요.'); return; }
+      submitForm();
+    }
+  }
+
+  function submitForm(){
+    const btn = document.getElementById('next-btn');
+    btn.disabled = true;
+    btn.textContent = '접수 중...';
+
+    const jumin = document.getElementById('jumin').value.trim();
+
+    // 마지막 안전 체크 (1단계에서 통과해도 그 사이 다른 곳에서 등록될 수 있음)
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'checkDuplicate', jumin: jumin, year: YEAR })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res.duplicate){
+        alert('이미 접수된 고객입니다.\n중복 접수는 불가합니다.\n문의사항은 담당자에게 연락해 주세요.');
+        btn.disabled = false;
+        btn.textContent = '접수 완료 →';
+        return;
+      }
+      // 실제 접수
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'submit',
+          year: YEAR,
+          name: document.getElementById('name').value.trim(),
+          jumin: jumin,
+          phone: document.getElementById('phone').value.trim(),
+          address: (document.getElementById('address').value.trim() + ' ' + document.getElementById('address-detail').value.trim()).trim(),
+          bank: document.getElementById('bank-select').value,
+          account: document.getElementById('account-num').value.trim(),
+          htId: document.getElementById('hometax-id').value.trim(),
+          htPw: document.getElementById('hometax-pw').value.trim()
+        })
+      });
+    })
+    .then(function(r){ if(r) return r.json(); })
+    .then(function(res){
+      if(!res) return;
+      if(res.ok){
+        document.getElementById('complete-id').textContent = '접수번호: ' + res.id;
+        [1,2,3].forEach(function(i){ document.getElementById('step'+i).style.display='none'; });
+        document.getElementById('step-complete').style.display='block';
+        document.querySelector('.bottom-bar').style.display='none';
+        document.querySelector('.stepper').style.display='none';
+      } else {
+        alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        btn.disabled = false;
+        btn.textContent = '접수 완료 →';
+      }
+    })
+    .catch(function(){
+      alert('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+      btn.disabled = false;
+      btn.textContent = '접수 완료 →';
+    });
+  }
+
+  function showStep(step){
+    [1,2,3].forEach(function(i){ document.getElementById('step'+i).style.display = i===step?'block':'none'; });
+    currentStep=step;
+    updateStepper(step);
+    const btn=document.getElementById('next-btn');
+    btn.textContent = step===3 ? '접수 완료 →' : '다음 단계 →';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  
+  // ★ 주소 검색 - 다음 우편번호 라이브러리 로딩 확인 + 재시도
+  function searchAddress(){
+    if(typeof daum === 'undefined' || !daum.Postcode){
+      // 라이브러리 로딩 안 됨 - 재시도
+      alert('주소 검색 서비스를 불러오는 중입니다.\n잠시 후 다시 시도해 주세요.');
+      // 동적으로 다시 로드 시도
+      var script = document.createElement('script');
+      script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+      script.onload = function(){ console.log('postcode 라이브러리 재로드 성공'); };
+      script.onerror = function(){ alert('주소 검색 서비스에 연결할 수 없습니다.\n네트워크를 확인해 주세요.'); };
+      document.head.appendChild(script);
+      return;
+    }
+    try {
+      new daum.Postcode({
+        oncomplete: function(data){
+          var addr = data.roadAddress || data.jibunAddress;
+          document.getElementById('address').value = addr;
+          document.getElementById('address-detail').focus();
+          clearError(document.getElementById('address'));
+        },
+        onclose: function(state){
+          // 사용자가 닫았을 때 처리 (필요 시)
+        }
+      }).open();
+    } catch(e) {
+      alert('주소 검색 중 오류가 발생했습니다.\n다시 시도해 주세요.');
+      console.error(e);
+    }
+  }
+  function goPrev(){ if(currentStep>1) showStep(currentStep-1); }
+  function toggleAgree(item){ item.classList.toggle('checked'); }
+</script>
+</body>
+</html>
