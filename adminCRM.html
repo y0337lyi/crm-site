@@ -411,6 +411,29 @@
     <div id="empty-htax-list" style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:8px"></div>
   </div>
 </div>
+<!-- ★ 입금자 문자 발송 모달 -->
+<div class="modal-overlay" id="paid-list-modal" onclick="if(event.target===this)closePaidListModal()" style="z-index:600">
+  <div class="modal-box" style="width:780px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column">
+    <h3 style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span>💰 수수료 입금자 명단 (문자 발송용)</span>
+      <button onclick="closePaidListModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">×</button>
+    </h3>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px;background:var(--green-light);border-radius:8px;flex-wrap:wrap">
+      <label style="font-size:13px;font-weight:700;color:var(--green-dark)">시작일:</label>
+      <input type="date" id="paid-start-date" style="border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit"/>
+      <label style="font-size:13px;font-weight:700;color:var(--green-dark)">~ 종료일:</label>
+      <input type="date" id="paid-end-date" style="border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit"/>
+      <button onclick="searchPaidList()" style="padding:7px 16px;background:var(--green-dark);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">🔍 조회</button>
+    </div>
+    <div id="paid-list-summary" style="padding:10px 14px;background:#fffde7;border-radius:8px;margin-bottom:12px;font-size:13px;color:var(--text-primary);display:none"></div>
+    <div id="paid-list-body" style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;min-height:200px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="copyPaidPhones()" id="paid-copy-phones-btn" style="padding:10px 16px;background:#27ae60;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:none">📋 핸드폰번호 복사</button>
+      <button onclick="copyPaidMessage()" id="paid-copy-msg-btn" style="padding:10px 16px;background:#2980b9;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:none">📋 문자내용 복사</button>
+    </div>
+    <div id="paid-copy-ok" style="text-align:center;color:var(--green-accent);font-size:13px;font-weight:700;margin-top:8px;display:none">✓ 복사 완료!</div>
+  </div>
+</div> 
 <!-- ★ 연도별 이력 추가 모달 -->
 <div class="modal-overlay" id="add-history-modal" onclick="if(event.target===this)closeAddHistoryModal()" style="z-index:600">
   <div class="modal-box" style="width:480px;max-width:95vw">
@@ -494,6 +517,7 @@
       <button class="btn btn-outline" id="reg-btn" onclick="openRegModal()" style="background:var(--green-dark);color:#fff;border-color:var(--green-dark);display:none">➕ 회원 등록</button>
       <button class="btn btn-outline" id="restore-htax-btn" onclick="bulkRestoreHomeTax()" style="background:#8e44ad;color:#fff;border-color:#8e44ad;display:none">🔧 홈택스 정보 일괄 복원</button>
       <button class="btn btn-outline" id="show-empty-htax-btn" onclick="showEmptyHomeTaxList()" style="background:#e67e22;color:#fff;border-color:#e67e22;display:none">📋 홈택스 빈칸 명단</button>
+      <button class="btn btn-outline" id="paid-list-btn" onclick="openPaidListModal()" style="background:#27ae60;color:#fff;border-color:#27ae60;display:none">💰 입금자 문자</button>
       <button class="btn btn-outline" id="diag-btn" onclick="diagSearch()" style="background:#34495e;color:#fff;border-color:#34495e;display:none">🔍 검색 진단</button>
       <button class="btn btn-outline" id="excel-btn" onclick="exportCSV()" style="display:none">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>전체 엑셀
