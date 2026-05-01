@@ -1893,7 +1893,7 @@ function fcSave(rid){
       income:i33Val||fcG(rid,'ibiz').value.replace(/,/g,'')||(document.getElementById('fc-hi-income-'+rid)?document.getElementById('fc-hi-income-'+rid).value.replace(/,/g,''):'')||targetRecord.income||'',fee:fee.toString(),
       refund:refundOutVal||(r33El?r33El.value.replace(/,/g,''):'')||'',payment:paymentOutVal||'',
       feePaidDate:targetRecord.feePaidDate||'',filingDate:targetRecord.filingDate||'',filingType:targetRecord.filingType||'',
-      manager:targetRecord.manager||currentManagerName,memo:memoEl?memoEl.value:''
+      manager:targetRecord.manager||currentManagerName,memo:memoEl?memoEl.value:'',printedDate:targetRecord.printedDate||''
     };
     fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(procPayload)}).catch(function(){});
     targetRecord.income=procPayload.income;targetRecord.fee=procPayload.fee;targetRecord.refund=procPayload.refund;targetRecord.payment=procPayload.payment;targetRecord.memo=procPayload.memo;
