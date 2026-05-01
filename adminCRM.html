@@ -1890,7 +1890,7 @@ function fcSave(rid){
     Object.keys(fcPayload).forEach(function(k){if(k!=='action'&&k!=='password'&&k!=='id')targetRecord[k]=fcPayload[k];});
     fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(fcPayload)}).catch(function(){});
     var procPayload={action:'update',password:currentPw,id:targetRecord.id,
-      income:i33Val||fcG(rid,'ibiz').value.replace(/,/g,'')||targetRecord.income||'',fee:fee.toString(),
+      income:i33Val||fcG(rid,'ibiz').value.replace(/,/g,'')||(document.getElementById('fc-hi-income-'+rid)?document.getElementById('fc-hi-income-'+rid).value.replace(/,/g,''):'')||targetRecord.income||'',fee:fee.toString(),
       refund:refundOutVal||(r33El?r33El.value.replace(/,/g,''):'')||'',payment:paymentOutVal||'',
       feePaidDate:targetRecord.feePaidDate||'',filingDate:targetRecord.filingDate||'',filingType:targetRecord.filingType||'',
       manager:targetRecord.manager||currentManagerName,memo:memoEl?memoEl.value:''
