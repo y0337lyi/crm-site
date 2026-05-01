@@ -2028,7 +2028,7 @@ function generateSMS(id,yrid,year){
   var i33Raw=incomeRaw;
   if(!lines.length&&i33Raw)lines.push('▶ 수입금액: '+Number(i33Raw).toLocaleString('ko-KR')+'원');
   var incomeSection=lines.length?'[ 수입금액 내역 ]\n'+lines.join('\n')+'\n\n위 수입금액은 홈택스 신고도움 서비스 기준이므로\n최종 확인은 고객님이 하셔야 합니다.':'수입금액: '+income+'\n위 수입금액은 홈택스 신고도움 서비스 기준이므로\n최종 확인은 고객님이 하셔야 합니다.';
-  var text='안녕하세요, 이서연실장입니다.\n\n'+year+'년 종합소득세 신고 안내드립니다.\n\n'+incomeSection+'\n'+'─────────────────\n'+'▶ 신고 수수료: '+fee+'\n'+(refundRaw?'▶ 환급 예정액: '+refund+'\n':'')+'\n수수료 입금계좌: '+bank+' '+account+'\n'+'예금주: '+name+'\n\n'+'<<수수료로 입금 확인 후 신고 진행됩니다>>\n'+'타인 명의 입금 시 꼭 전화/문자로 알려주세요!\n\n'+'※ 수수료 입금 후 환불은 어려우며, 환불 시 30% 차감 후 환불됩니다.\n\n'+'📞 이서연실장 02-2208-2526\n'+'📠 팩스 02-2299-2526\n'+'📠 전자팩스 0303-3130-2526';
+  var text='안녕하세요, 이서연실장입니다.\n\n'+year+'년 종합소득세 신고 안내드립니다.\n\n'+incomeSection+'\n'+'─────────────────\n'+'▶ 신고 수수료: '+fee+'\n'+(refundRaw?'▶ 환급 예정액: '+refund+'\n':'')+'\n수수료 입금계좌: '+bank+' '+account+'\n'+'예금주: '+name+'\n\n'+'<<수수료로 입금 확인 후 신고 진행됩니다>>\n'+'타인 명의 입금 시 꼭 전화/문자로 알려주세요!\n\n'+'※ 수수료 입금 후 환불은 어려우며, 환불 시 30% 차감 후 환불됩니다.\n\n'+'이서연실장 02-2208-2526\n'+'팩스 02-2299-2526\n'+'전자팩스 0303-3130-2526';
   document.getElementById('sms-text-area').value=text;
   document.getElementById('sms-copy-ok').style.display='none';
   document.getElementById('sms-modal').classList.add('open');
