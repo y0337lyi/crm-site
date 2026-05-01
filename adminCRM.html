@@ -429,8 +429,7 @@
     <div id="paid-list-body" style="flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;min-height:200px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button onclick="copyPaidPhones()" id="paid-copy-phones-btn" style="padding:10px 16px;background:#27ae60;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:none">📋 핸드폰번호 복사</button>
-      <button onclick="copyPaidMessage()" id="paid-copy-msg-btn" style="padding:10px 16px;background:#2980b9;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:none">📋 문자내용 복사</button>
-    </div>
+         </div>
     <div id="paid-copy-ok" style="text-align:center;color:var(--green-accent);font-size:13px;font-weight:700;margin-top:8px;display:none">✓ 복사 완료!</div>
   </div>
 </div> 
@@ -1057,6 +1056,82 @@ function showEmptyHomeTaxList(){
   window._emptyHtaxList=emptyList; // 복사/내보내기용 보관
   document.getElementById('empty-htax-modal').classList.add('open');
 }
+// ── 입금자 문자 발송 모달 ──────────────────────────────
+function openPaidListModal(){
+  if(!isAdmin){alert('관리자만 사용 가능합니다.');return;}
+  var today=new Date();
+  var yesterday=new Date(today); yesterday.setDate(today.getDate()-1);
+  function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  document.getElementById('paid-start-date').value=fmt(yesterday);
+  document.getElementById('paid-end-date').value=fmt(yesterday);
+  document.getElementById('paid-list-summary').style.display='none';
+  document.getElementById('paid-list-body').innerHTML='<div style="padding:30px;text-align:center;color:#888">날짜를 선택하고 조회 버튼을 누르세요</div>';
+  document.getElementById('paid-copy-phones-btn').style.display='none';
+  document.getElementById('paid-copy-ok').style.display='none';
+  window._paidList=[];
+  document.getElementById('paid-list-modal').classList.add('open');
+}
+function closePaidListModal(){document.getElementById('paid-list-modal').classList.remove('open');}
+function searchPaidList(){
+  var sd=document.getElementById('paid-start-date').value;
+  var ed=document.getElementById('paid-end-date').value;
+  if(!sd||!ed){alert('시작일과 종료일을 모두 선택해주세요.');return;}
+  if(sd>ed){alert('종료일이 시작일보다 빠를 수 없습니다.');return;}
+  function toCmp(s){return s?String(s).replace(/[.\-]/g,'').substring(0,8):'';}
+  var sdCmp=toCmp(sd), edCmp=toCmp(ed);
+  var paidList=allRecords.filter(function(r){
+    if(!r.feePaidDate)return false;
+    var d=toCmp(r.feePaidDate);
+    return d>=sdCmp&&d<=edCmp;
+  });
+  paidList.sort(function(a,b){return toCmp(a.feePaidDate).localeCompare(toCmp(b.feePaidDate));});
+  window._paidList=paidList;
+  var summary=document.getElementById('paid-list-summary');
+  var body=document.getElementById('paid-list-body');
+  if(paidList.length===0){
+    summary.style.display='none';
+    body.innerHTML='<div style="padding:30px;text-align:center;color:#888">해당 기간에 입금자가 없습니다.</div>';
+    document.getElementById('paid-copy-phones-btn').style.display='none';
+    return;
+  }
+  var totalFee=paidList.reduce(function(s,r){return s+(Number(r.fee)||0);},0);
+  summary.innerHTML='조회 결과: <strong style="font-size:15px;color:var(--green-dark)">'+paidList.length+'건</strong> &nbsp;|&nbsp; 수수료 합계: <strong style="font-size:15px;color:var(--green-dark)">'+totalFee.toLocaleString('ko-KR')+'원</strong>';
+  summary.style.display='block';
+  var html='<table style="width:100%;border-collapse:collapse;font-size:13px">';
+  html+='<thead style="position:sticky;top:0;background:#f8f9fa;z-index:1"><tr style="border-bottom:2px solid var(--border)">';
+  html+='<th style="padding:10px 8px;text-align:left;font-size:11px;color:var(--text-secondary)">No.</th>';
+  html+='<th style="padding:10px 8px;text-align:left;font-size:11px;color:var(--text-secondary)">고객명</th>';
+  html+='<th style="padding:10px 8px;text-align:left;font-size:11px;color:var(--text-secondary)">핸드폰번호</th>';
+  html+='<th style="padding:10px 8px;text-align:right;font-size:11px;color:var(--text-secondary)">수수료</th>';
+  html+='<th style="padding:10px 8px;text-align:center;font-size:11px;color:var(--text-secondary)">입금일</th>';
+  html+='</tr></thead><tbody>';
+  paidList.forEach(function(r,i){
+    html+='<tr style="border-bottom:1px solid var(--green-light)">';
+    html+='<td style="padding:8px;color:#999">'+(i+1)+'</td>';
+    html+='<td style="padding:8px;font-weight:600">'+(r.name||'-')+'</td>';
+    html+='<td style="padding:8px;font-family:monospace">'+fmtPhone(r.phone||'')+'</td>';
+    html+='<td style="padding:8px;text-align:right;color:var(--green-dark);font-weight:700">'+(r.fee?Number(r.fee).toLocaleString('ko-KR')+'원':'-')+'</td>';
+    html+='<td style="padding:8px;text-align:center;color:var(--text-secondary)">'+fmtDate(r.feePaidDate)+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  body.innerHTML=html;
+  document.getElementById('paid-copy-phones-btn').style.display='inline-flex';
+  document.getElementById('paid-copy-ok').style.display='none';
+}
+function copyPaidPhones(){
+  if(!window._paidList||!window._paidList.length){alert('조회된 명단이 없습니다.');return;}
+  var phones=window._paidList.map(function(r){return fmtPhone(r.phone||'');}).filter(function(p){return p;});
+  var text=phones.join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      var ok=document.getElementById('paid-copy-ok');
+      ok.textContent='핸드폰번호 '+phones.length+'개 복사 완료! 뿌리오에 붙여넣으세요.';
+      ok.style.display='block';
+      setTimeout(function(){ok.style.display='none';},3000);
+    }).catch(function(){fallbackCopy(text);});
+  } else {fallbackCopy(text);}
+} 
 function closeEmptyHtaxModal(){document.getElementById('empty-htax-modal').classList.remove('open');}
 
 function copyEmptyHtaxList(){
