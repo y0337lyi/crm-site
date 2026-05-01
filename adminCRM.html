@@ -766,7 +766,7 @@ function doLogin(){
     document.getElementById('admin-name').textContent=currentManagerName;
     document.getElementById('admin-role').textContent=isAdmin?'전체 권한':'조회·인쇄';
     document.getElementById('admin-avatar').textContent=currentManagerName.charAt(0)||'?';
-    if(isAdmin){document.getElementById('excel-btn').style.display='flex';document.getElementById('unpaid-btn').style.display='flex';document.getElementById('reg-btn').style.display='flex';document.getElementById('restore-htax-btn').style.display='flex';document.getElementById('show-empty-htax-btn').style.display='flex';var dbtn=document.getElementById('diag-btn');if(dbtn)dbtn.style.display='flex';}
+    if(isAdmin){document.getElementById('excel-btn').style.display='flex';document.getElementById('unpaid-btn').style.display='flex';document.getElementById('reg-btn').style.display='flex';document.getElementById('restore-htax-btn').style.display='flex';document.getElementById('paid-list-btn').style.display='flex';document.getElementById('show-empty-htax-btn').style.display='flex';var dbtn=document.getElementById('diag-btn');if(dbtn)dbtn.style.display='flex';}
     if(!isAdmin){document.getElementById('stats-row').style.display='none';document.getElementById('reg-btn').style.display='flex';}
     if(!isAdmin)document.getElementById('change-name-btn').style.display='block';
     document.getElementById('year-filter').value='2025';
