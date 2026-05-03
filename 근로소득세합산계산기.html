@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>근로소득세 합산 계산기 2025</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#eeeeeb;
+  --text:#1a1a18;--text2:#6a6a66;--text3:#9e9e9a;
+  --border:#e4e4e0;--border2:#c9c9c5;
+  --blue-bg:#eff6ff;--blue-text:#1d4ed8;--blue-border:#bfdbfe;
+  --green-bg:#f0fdf4;--green-text:#15803d;--green-border:#bbf7d0;
+  --red-bg:#fef2f2;--red-text:#b91c1c;--red-border:#fecaca;
+  --warn-bg:#fffbeb;--warn-text:#92400e;--warn-border:#fde68a;
+  --r:10px;--rs:7px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;font-size:14px;color:var(--text);background:var(--bg);max-width:480px;margin:0 auto;min-height:100vh}
+
+/* ── 비밀번호 화면 ── */
+#pw-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+#pw-screen .pw-title{font-size:18px;font-weight:700;margin-bottom:6px;color:var(--text)}
+#pw-screen .pw-sub{font-size:12px;color:var(--text3);margin-bottom:28px}
+#pw-screen input{width:100%;max-width:240px;padding:11px 14px;border:1px solid var(--border2);border-radius:var(--rs);font-size:16px;text-align:center;letter-spacing:6px;background:var(--bg2);color:var(--text);margin-bottom:10px;outline:none}
+#pw-screen input:focus{border-color:#93c5fd;background:#fff;box-shadow:0 0 0 3px rgba(147,197,253,.2)}
+#pw-screen .pw-btn{width:100%;max-width:240px;padding:11px;border-radius:var(--rs);border:none;background:var(--blue-text);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+#pw-screen .pw-btn:active{opacity:.85}
+#pw-screen .pw-err{font-size:12px;color:var(--red-text);margin-top:8px;min-height:18px}
+#pw-screen .pw-change{margin-top:24px;font-size:11px;color:var(--text3);text-decoration:underline;cursor:pointer;background:none;border:none}
+
+/* ── 화면 전용 ── */
+.sticky{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.sb-item{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.sb-lbl{font-size:10px;color:var(--text3)}
+.sb-val{font-size:13px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sb-val.info{color:var(--blue-text)}.sb-val.pos{color:var(--red-text)}.sb-val.neg{color:var(--green-text)}
+.sb-div{width:1px;height:26px;background:var(--border);flex-shrink:0}
+.steps{display:flex;align-items:center;padding:12px 16px 6px}
+.step-wrap{display:flex;align-items:center;flex:1}.step-wrap:last-child{flex:none}
+.s-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1.5px solid var(--border2);background:var(--bg2);color:var(--text3);flex-shrink:0;transition:all .2s}
+.s-dot.active{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue-text)}
+.s-dot.done{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text)}
+.s-lbl{font-size:11px;color:var(--text3);margin-left:4px;white-space:nowrap}
+.s-lbl.active{color:var(--text);font-weight:600}
+.s-line{flex:1;height:1px;background:var(--border);margin:0 5px}
+.page{display:none;padding:14px 16px 110px}
+.page.show{display:block;animation:fi .18s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.pg-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.card{border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;transition:border-color .2s,background .2s}
+.card.high{border-color:var(--warn-border);background:var(--warn-bg)}
+.card-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.card-title-spacer{flex:1}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;border:1px solid}
+.b-warn{background:var(--warn-bg);color:var(--warn-text);border-color:var(--warn-border)}
+.b-red{background:var(--red-bg);color:var(--red-text);border-color:var(--red-border)}
+.b-blue{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-border)}
+.auto-chip{font-size:10px;color:var(--blue-text);font-weight:600;background:var(--blue-bg);border:1px solid var(--blue-border);padding:1px 5px;border-radius:4px}
+
+/* 다중 행 */
+.btn-add{font-size:11px;padding:4px 10px;border-radius:5px;background:var(--blue-bg);color:var(--blue-text);border:1px solid var(--blue-border);cursor:pointer;font-weight:600}
+.btn-add:active{opacity:.8}
+.biz-row{border:1px solid var(--border);border-radius:var(--rs);padding:10px;margin-bottom:8px;background:var(--bg2)}
+.biz-row:last-child{margin-bottom:0}
+.biz-row-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.biz-row-title{font-size:11px;font-weight:600;color:var(--text2);background:var(--bg3);padding:2px 8px;border-radius:10px}
+.biz-row-rm{background:none;border:1px solid var(--border2);color:var(--red-text);font-size:13px;cursor:pointer;padding:1px 8px;border-radius:4px;line-height:1.2}
+.biz-row-rm:disabled{color:var(--text3);border-color:var(--border);cursor:not-allowed;opacity:.5}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.g2m{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.g3m{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--text2);line-height:1.3;display:flex;align-items:center;gap:5px}
+.field input,.field select{padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg);color:var(--text);font-size:13px;width:100%;-webkit-appearance:none;transition:border-color .15s,background .15s}
+.field input:focus{outline:none;border-color:#93c5fd;background:#fff;box-shadow:0 0 0 3px rgba(147,197,253,.2)}
+.field input.ro{background:var(--bg3);color:var(--text3);cursor:default}
+.biz-row .field input{background:var(--bg)}
+.total-bar{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:var(--bg2);border-radius:var(--rs);font-weight:700;font-size:14px;margin-top:10px;border:1px solid var(--border)}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.sub-ttl{font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px}
+.cr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
+.cr.tot{border-top:1px solid var(--border2);margin-top:5px;padding-top:9px;font-weight:700}
+.cr .lb{color:var(--text2)}.cr .vl{font-variant-numeric:tabular-nums}
+.tag-rate{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--warn-bg);color:var(--warn-text);font-weight:700;border:1px solid var(--warn-border)}
+.note{font-size:11px;color:var(--text3);padding:7px 10px;background:var(--bg2);border-radius:var(--rs);border:1px solid var(--border);line-height:1.6}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.rc{background:var(--bg2);border-radius:var(--rs);padding:12px 14px;border:1px solid var(--border)}
+.rc .rl{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:500}
+.rc .rv{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.rc.hi{background:var(--blue-bg);border-color:var(--blue-border)}.rc.hi .rl,.rc.hi .rv{color:var(--blue-text)}
+.rc.dg{background:var(--red-bg);border-color:var(--red-border)}.rc.dg .rl,.rc.dg .rv{color:var(--red-text)}
+.rc.sc{background:var(--green-bg);border-color:var(--green-border)}.rc.sc .rl,.rc.sc .rv{color:var(--green-text)}
+.result-block{border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.pos{color:var(--red-text)}.neg{color:var(--green-text)}
+.btn-row{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:10px 16px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:7px;z-index:200}
+.btn{flex:1;padding:11px 8px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--blue-text);border-color:var(--blue-text);color:#fff}
+.btn.ghost{flex:0 0 auto;padding:11px 14px;font-size:12px}
+.btn.danger{color:var(--red-text);border-color:var(--red-border)}
+.cust-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px}
+.cust-bar .field{flex:1}
+.cust-bar input{padding:6px 8px;font-size:12px}
+
+/* ── 인쇄 전용 ── */
+#print-sheet{display:none}
+@media print{
+  .sticky,.steps,.btn-row,.cust-bar,.page,#app-wrap{display:none!important}
+  #print-sheet{display:block!important}
+  body{max-width:100%;font-size:10px;color:#000;background:#fff}
+  @page{margin:12mm 10mm;size:A4}
+}
+/* 인쇄 폼 스타일 */
+.ps{font-family:'Malgun Gothic','Pretendard',sans-serif;font-size:10px;color:#111;padding:0}
+.ps-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px}
+.ps-title{font-size:16px;font-weight:700}
+.ps-sub{font-size:10px;color:#555;margin-top:2px}
+.ps-right{text-align:right;font-size:10px;color:#444;line-height:1.7}
+.ps-cust{display:flex;gap:20px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #bbb;font-size:11px}
+.ps-cf{display:flex;align-items:center;gap:5px}
+.ps-cl{color:#666}
+.ps-cv{font-weight:700;border-bottom:1px solid #888;min-width:70px;padding-bottom:1px}
+.ps-cv.blue{color:#1d4ed8}
+.ps-cv.green{color:#15803d}
+.ps-cv.red{color:#b91c1c}
+.ps-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ps-sec{font-size:9px;font-weight:700;color:#555;border-bottom:1px solid #bbb;padding-bottom:2px;margin-bottom:5px;letter-spacing:.3px}
+.ps-row{display:flex;justify-content:space-between;padding:1.5px 0;border-bottom:1px dotted #eee;font-size:10px}
+.ps-row .pl{color:#555}
+.ps-row .pv{font-variant-numeric:tabular-nums}
+.ps-row.ind{padding-left:8px}
+.ps-row.ind .pl{color:#888;font-size:9px}
+.ps-row.ind .pv{color:#888;font-size:9px}
+.ps-row.tot{border-top:1px solid #888;border-bottom:1px solid #888;font-weight:700;margin-top:2px}
+.ps-calc{border:1px solid #bbb;border-radius:3px;padding:6px 8px;margin-bottom:8px;background:#fafafa;font-size:10px}
+.ps-cr{display:flex;justify-content:space-between;padding:1.5px 0}
+.ps-cr .cl{color:#555}
+.ps-cr.bold{font-weight:700;border-top:1px solid #999;margin-top:3px;padding-top:3px}
+.ps-cr.result{font-size:12px;font-weight:700;color:#1d4ed8;border-top:1.5px solid #1d4ed8;margin-top:4px;padding-top:4px}
+.ps-cr.result.red{color:#b91c1c;border-color:#b91c1c}
+.ps-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px}
+.ps-box{border:1px solid #bbb;border-radius:3px;padding:5px 8px;text-align:center}
+.ps-box .bl{font-size:9px;color:#666;margin-bottom:1px}
+.ps-box .bv{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.ps-box.blue{border-color:#bfdbfe;background:#eff6ff}.ps-box.blue .bl,.ps-box.blue .bv{color:#1d4ed8}
+.ps-box.green{border-color:#bbf7d0;background:#f0fdf4}.ps-box.green .bl,.ps-box.green .bv{color:#15803d}
+.ps-box.red{border-color:#fecaca;background:#fef2f2}.ps-box.red .bl,.ps-box.red .bv{color:#b91c1c}
+.ps-note{font-size:9px;color:#888;margin-top:6px;border-top:1px solid #eee;padding-top:4px}
+</style>
+</head>
+<body>
+
+<!-- 비밀번호 입력 화면 -->
+<div id="pw-screen">
+  <div class="pw-title">근로소득세 합산 계산기</div>
+  <div class="pw-sub">2025년 귀속</div>
+  <input id="pw-input" type="password" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter')checkPw()" autofocus>
+  <button class="pw-btn" onclick="checkPw()">확인</button>
+  <div class="pw-err" id="pw-err"></div>
+</div>
+
+<div id="print-sheet"></div>
+<div id="app-wrap" style="display:none">
+<!-- 고객 정보 바 -->
+<div class="cust-bar">
+  <div class="field"><label style="font-size:11px">고객명</label><input id="cust-name" type="text" placeholder="홍길동"></div>
+  <div class="field"><label style="font-size:11px">연락처</label><input id="cust-tel" type="text" placeholder="010-0000-0000"></div>
+</div>
+
+<div class="sticky" id="sticky-bar"></div>
+<div class="steps" id="steps-bar"></div>
+
+<!-- ══ 페이지 0: 소득 입력 ══ -->
+<div class="page show" id="page-0">
+  <div class="pg-title">소득 입력</div>
+  <div class="card" id="fl-card">
+    <div class="card-title">프리랜서 <span class="badge b-warn">3.3%</span> <span class="badge b-blue" id="fl-br-badge" style="display:none"></span></div>
+    <div class="g2m">
+      <div class="field">
+        <label>수입금액 (원) <span class="auto-chip" style="background:var(--warn-bg);color:var(--warn-text);border-color:var(--warn-border)">메모</span></label>
+        <input id="fl-suip" type="text" inputmode="numeric" placeholder="0">
+        <div style="font-size:11px;color:var(--warn-text);background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:5px;padding:5px 8px;margin-top:4px;line-height:1.4">💡 타소득 합산시 2,600만원까지 소득율 10%</div>
+      </div>
+      <div class="field" id="fl-rate-wrap" style="display:none">
+        <label>소득율 (%) <span class="auto-chip">7,500만↑</span></label>
+        <input id="fl-rate" type="number" min="0" max="100" step="0.1" placeholder="소득율 입력">
+      </div>
+    </div>
+    <div class="field">
+      <label>소득금액 (원) <span class="auto-chip" id="fl-auto-chip">자동계산</span></label>
+      <input id="fl-sodeum" type="text" inputmode="numeric" placeholder="수입금액 입력 시 자동계산">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">연말정산 사업소득</div>
+    <div class="g2">
+      <div class="field"><label>수입금액 (원)</label><input id="ym-suip" type="text" inputmode="numeric" placeholder="0"></div>
+      <div class="field"><label>소득금액 (원)</label><input id="ym-sodeum" type="text" inputmode="numeric" placeholder="직접 입력"></div>
+    </div>
+  </div>
+
+  <!-- 사업자등록 사업소득 (다중 행) -->
+  <div class="card">
+    <div class="card-title">
+      사업자등록 사업소득
+      <div class="card-title-spacer"></div>
+      <button class="btn-add" type="button" onclick="addSjRow()">+ 사업장 추가</button>
+    </div>
+    <div id="sj-rows"></div>
+  </div>
+
+  <!-- 기타소득 (다중 행) -->
+  <div class="card">
+    <div class="card-title">
+      기타소득
+      <div class="card-title-spacer"></div>
+      <button class="btn-add" type="button" onclick="addGiRow()">+ 종류 추가</button>
+    </div>
+    <div id="gi-rows"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">근로소득</div>
+    <div class="g3">
+      <div class="field"><label>총급여액 (원)</label><input id="ro-salary" type="text" inputmode="numeric" placeholder="0"></div>
+      <div class="field"><label>근로소득공제 <span class="auto-chip">자동</span></label><input id="ro-deduct" class="ro" readonly value="0원"></div>
+      <div class="field"><label>근로소득금액 <span class="auto-chip">자동</span></label><input id="ro-income" class="ro" readonly value="0원"></div>
+    </div>
+  </div>
+  <div class="total-bar"><span>종합소득금액 합계</span><span id="total-income-p0">0원</span></div>
+</div>
+
+<!-- ══ 페이지 1: 소득공제 ══ -->
+<div class="page" id="page-1">
+  <div class="pg-title">소득공제 입력</div>
+  <div class="sub-ttl">인적공제 (인원수 입력)</div>
+  <div class="g3m">
+    <div class="field"><label>본인 (0 또는 1)</label><input id="d-boin" type="number" min="0" max="1" step="1" value="1"></div>
+    <div class="field"><label>배우자 (0 또는 1)</label><input id="d-spouse" type="number" min="0" max="1" step="1" value="0"></div>
+    <div class="field"><label>직계존속 (인원)</label><input id="d-parent" type="number" min="0" step="1" value="0"></div>
+  </div>
+  <div class="g3m">
+    <div class="field"><label>직계비속/형제 (인원)</label><input id="d-child" type="number" min="0" step="1" value="0"></div>
+    <div class="field"><label>경로우대 70세↑ (인원)</label><input id="d-elderly" type="number" min="0" step="1" value="0"></div>
+    <div class="field"><label>장애인 (인원)</label><input id="d-disabled" type="number" min="0" step="1" value="0"></div>
+  </div>
+  <div class="g2m">
+    <div class="field"><label>한부모 (0 또는 1)</label><input id="d-single" type="number" min="0" max="1" step="1" value="0"></div>
+    <div></div>
+  </div>
+  <div class="note" style="margin-bottom:10px">본인·배우자·직계존속·직계비속·형제 1인당 150만원 / 경로우대 100만원 / 장애인 200만원 / 한부모 100만원</div>
+  <div class="cr tot"><span class="lb">인적공제 합계</span><span class="vl" id="d-injeok-total">0원</span></div>
+  <div class="divider"></div>
+  <div class="sub-ttl">기타 소득공제</div>
+  <div class="g2m">
+    <div class="field"><label>국민연금보험료</label><input id="d-pension" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>건강+고용보험료 <span class="auto-chip">특별</span></label><input id="d-health" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="g2m">
+    <div class="field"><label>주택자금공제 <span class="auto-chip">특별</span></label><input id="d-housing-loan" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>주택마련저축</label><input id="d-housing" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="g2m">
+    <div class="field"><label>신용카드 등 공제</label><input id="d-card" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>기타 소득공제</label><input id="d-etc" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="note" style="margin-bottom:10px">※ <b>특별</b> 표시 항목(보험료·주택자금)은 표준세액공제 선택 시 자동 제외됩니다.</div>
+  <div class="cr tot"><span class="lb">소득공제 합계</span><span class="vl" id="d-total">0원</span></div>
+  <div class="divider"></div>
+  <div class="cr"><span class="lb">과세표준</span><span class="vl" id="d-taxbase">0원</span></div>
+  <div class="cr"><span class="lb">적용세율</span><span class="vl"><span class="tag-rate" id="d-rate">−</span></span></div>
+  <div class="cr tot"><span class="lb">산출세액</span><span class="vl" id="d-calctax">0원</span></div>
+</div>
+
+<!-- ══ 페이지 2: 세액공제 ══ -->
+<div class="page" id="page-2">
+  <div class="pg-title">세액공제 입력</div>
+  <div class="g2m">
+    <div class="field"><label>자녀세액공제 (8세↑ 인원)</label><input id="tc-child" type="number" min="0" step="1" value="0"></div>
+    <div class="field"><label>출산·입양 자녀 (인원)</label><input id="tc-birth" type="number" min="0" step="1" value="0"></div>
+  </div>
+  <div class="sub-ttl" style="margin-top:4px">연금계좌세액공제 (납입액 입력)</div>
+  <div class="g3m">
+    <div class="field"><label>퇴직연금 IRP</label><input id="tc-irp" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>연금저축</label><input id="tc-pensav" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>ISA만기 연금납입</label><input id="tc-isa" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="note" id="tc-pen-note" style="margin-bottom:10px">연금세액공제율 계산 중...</div>
+  <div class="sub-ttl">특별세액공제 (세액공제금액 직접 입력) <span class="auto-chip">특별</span></div>
+  <div class="g2m">
+    <div class="field"><label>보장성보험료 일반 공제액</label><input id="tc-ins" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>보장성보험료 장애인 공제액</label><input id="tc-insd" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="g2m">
+    <div class="field"><label>의료비 세액공제금액</label><input id="tc-med" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>교육비 세액공제금액</label><input id="tc-edu" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="g2m">
+    <div class="field"><label>기부금 세액공제금액</label><input id="tc-don" type="text" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>월세 세액공제금액</label><input id="tc-rent" type="text" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="g2m">
+    <div class="field"><label>기타 세액공제금액</label><input id="tc-etc" type="text" inputmode="numeric" placeholder="0"></div>
+    <div></div>
+  </div>
+  <div class="divider"></div>
+  <div class="cr"><span class="lb">근로소득세액공제 <span class="auto-chip" id="tc-ro-limit-chip" style="display:none"></span></span><span class="vl" id="tc-ro-cr">0원</span></div>
+  <div class="cr"><span class="lb">자녀·출산 세액공제</span><span class="vl" id="tc-child-cr">0원</span></div>
+  <div class="cr"><span class="lb">연금계좌세액공제 (한도 적용)</span><span class="vl" id="tc-pen-cr">0원</span></div>
+  <div class="cr"><span class="lb" id="tc-special-cr-lbl">보험·의료·교육·기부·월세 등 (한도 적용)</span><span class="vl" id="tc-special-cr">0원</span></div>
+  <div class="note" id="tc-std-note" style="margin-top:6px;display:none">※ 표준세액공제 적용 (특별공제 미적용 시 더 유리)</div>
+  <div class="cr tot"><span class="lb">세액공제 합계</span><span class="vl" id="tc-total-cr">0원</span></div>
+</div>
+
+<!-- ══ 페이지 3: 결과 ══ -->
+<div class="page" id="page-3">
+  <div class="pg-title">최종 결과</div>
+  <div class="res-grid">
+    <div class="rc"><div class="rl">종합소득금액</div><div class="rv" id="res-income">0원</div></div>
+    <div class="rc"><div class="rl">과세표준</div><div class="rv" id="res-taxbase">0원</div></div>
+  </div>
+  <div class="result-block">
+    <div class="cr"><span class="lb">종합소득금액</span><span class="vl" id="r-income">0원</span></div>
+    <div class="cr"><span class="lb">소득공제</span><span class="vl" id="r-deduct">0원</span></div>
+    <div class="cr"><span class="lb">과세표준</span><span class="vl" id="r-taxbase">0원</span></div>
+    <div class="cr"><span class="lb">적용세율</span><span class="vl"><span class="tag-rate" id="r-rate">−</span></span></div>
+    <div class="cr"><span class="lb">산출세액</span><span class="vl" id="r-calctax">0원</span></div>
+    <div class="divider" style="margin:8px 0"></div>
+    <div class="sub-ttl" style="margin-bottom:6px">세액공제 내역</div>
+    <div class="cr" id="r-tc-ro-row"><span class="lb" style="padding-left:8px">· 근로소득세액공제</span><span class="vl" id="r-tc-ro">0원</span></div>
+    <div class="cr" id="r-tc-child-row"><span class="lb" style="padding-left:8px">· 자녀·출산 세액공제</span><span class="vl" id="r-tc-child">0원</span></div>
+    <div class="cr" id="r-tc-special-row"><span class="lb" style="padding-left:8px" id="r-tc-special-lbl">· 특별세액공제</span><span class="vl" id="r-tc-special">0원</span></div>
+    <div class="cr" id="r-tc-pen-row"><span class="lb" style="padding-left:8px">· 연금계좌세액공제</span><span class="vl" id="r-tc-pen">0원</span></div>
+    <div class="cr" id="r-tc-other-row"><span class="lb" style="padding-left:8px">· 기타세액공제</span><span class="vl" id="r-tc-other">0원</span></div>
+    <div class="cr"><span class="lb">세액공제 합계</span><span class="vl" id="r-taxcr">0원</span></div>
+    <div class="cr tot"><span class="lb">결정세액</span><span class="vl" id="r-final">0원</span></div>
+    <div class="cr" id="r-penalty-row" style="display:none"><span class="lb">+ 가산세 (복식부기·간편장부)</span><span class="vl pos" id="r-penalty">0원</span></div>
+    <div class="cr tot" id="r-total-tax-row" style="display:none"><span class="lb">총 납부세액</span><span class="vl" id="r-total-tax">0원</span></div>
+    <div class="cr"><span class="lb">지방소득세 (별도 납부)</span><span class="vl" id="r-local">0원</span></div>
+  </div>
+  <div class="result-block" id="ab-compare-block" style="display:none">
+    <div class="sub-ttl" style="margin-bottom:8px">표준세액공제 비교 (유리한 쪽 자동 적용)</div>
+    <div class="cr"><span class="lb">A. 특별공제 적용</span><span class="vl" id="r-finalA">0원</span></div>
+    <div class="cr"><span class="lb">B. 표준세액공제 적용</span><span class="vl" id="r-finalB">0원</span></div>
+    <div class="cr tot"><span class="lb" id="r-ab-pick">선택</span><span class="vl" id="r-ab-saving">−</span></div>
+  </div>
+  <div class="result-block" id="penalty-block" style="padding:0;overflow:hidden">
+    <div id="penalty-header" onclick="togglePenalty()" style="padding:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+      <span style="font-size:13px;font-weight:700">복식부기의무자 간편장부 신고 가산세</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span id="penalty-badge" style="display:none;font-size:11px;font-weight:600;color:var(--red-text);background:var(--red-bg);border:1px solid var(--red-border);padding:2px 8px;border-radius:10px;font-variant-numeric:tabular-nums"></span>
+        <span id="penalty-arrow" style="font-size:11px;color:var(--text3);transition:transform .2s;display:inline-block">▼</span>
+      </span>
+    </div>
+    <div id="penalty-content" style="display:none;padding:0 14px 14px">
+
+    <!-- 입력 영역 -->
+    <div class="g3m">
+      <div class="field">
+        <label>해당 사업소득금액</label>
+        <input id="pn-biz-sodeum" type="text" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="field">
+        <label>해당 사업 수입금액</label>
+        <input id="pn-biz-suip" type="text" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="field">
+        <label>해당 사업 기납부세액</label>
+        <input id="pn-biz-prepaid" type="text" inputmode="numeric" placeholder="0">
+      </div>
+    </div>
+
+    <!-- ① 무기장 가산세 -->
+    <div style="background:var(--bg2);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;border:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px">① 무기장 가산세 (장부의 기록·보관 불성실)</div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">① 산출세액</span><span class="vl" id="pn-mj-tax">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">② 무기장 소득금액</span><span class="vl" id="pn-mj-sodeum">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">③ 종합소득금액</span><span class="vl" id="pn-mj-total">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">④ 기준금액 = ① × ② / ③</span><span class="vl" id="pn-mj-base">0원</span></div>
+      <div class="cr" style="font-size:13px;padding-top:6px;border-top:1px solid var(--border);margin-top:3px;font-weight:700"><span class="lb">⑤ 무기장가산세 = ④ × 20%</span><span class="vl" id="pn-mj-penalty">0원</span></div>
+    </div>
+
+    <!-- ② 무신고 가산세 -->
+    <div style="background:var(--bg2);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;border:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px">② 무신고 가산세</div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">① 납부세액 (결정세액)</span><span class="vl" id="pn-ms-tax">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">② 무신고소득금액</span><span class="vl" id="pn-ms-sodeum">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">③ 종합소득금액</span><span class="vl" id="pn-ms-total">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">④ 무신고수입금액</span><span class="vl" id="pn-ms-suip">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">⑤ 무신고기준금액 = ① × ② / ③</span><span class="vl" id="pn-ms-base">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">⑥ 무신고기납부세액</span><span class="vl" id="pn-ms-prepaid">0원</span></div>
+      <div class="cr" style="font-size:12px;padding:3px 0"><span class="lb">⑦ 무신고납부세액 = MAX(0, ⑤−⑥)</span><span class="vl" id="pn-ms-net">0원</span></div>
+      <div class="cr" style="font-size:11px;padding:2px 0;color:var(--text3);padding-left:14px"><span class="lb">└ ⑦ × 20%</span><span class="vl" id="pn-ms-by-tax">0원</span></div>
+      <div class="cr" style="font-size:11px;padding:2px 0;color:var(--text3);padding-left:14px"><span class="lb">└ ④ × 7/10,000</span><span class="vl" id="pn-ms-by-rev">0원</span></div>
+      <div class="cr" style="font-size:13px;padding-top:6px;border-top:1px solid var(--border);margin-top:3px;font-weight:700"><span class="lb" id="pn-ms-pick-lbl">무신고가산세 = MAX(둘 중 큰 값)</span><span class="vl" id="pn-ms-penalty">0원</span></div>
+    </div>
+
+    <!-- 적용 가산세 -->
+    <div class="cr tot" style="font-size:14px;border-top:2px solid var(--border2);padding-top:10px">
+      <span class="lb" id="pn-applied-lbl" style="font-weight:700">적용 가산세 (① ② 중 큰 금액)</span>
+      <span class="vl" id="pn-applied" style="color:var(--red-text);font-size:16px;font-weight:700">0원</span>
+    </div>
+
+    </div><!-- /penalty-content -->
+  </div>
+  <div class="field" style="margin-bottom:12px">
+    <label>기납부세액 합계 (원천징수 + 중간예납 등)</label>
+    <input id="prepaid" type="text" inputmode="numeric" placeholder="0">
+  </div>
+  <div class="cr" style="font-size:13px;padding:7px 0">
+    <span class="lb" id="r-pay-lbl">소득세 추가 납부 (+)</span>
+    <span class="vl" id="r-pay-val" style="font-weight:600">0원</span>
+  </div>
+  <div class="cr" style="font-size:13px;padding:7px 0">
+    <span class="lb" id="r-local-pay-lbl">지방소득세 추가 납부 (+) <span class="auto-chip" style="font-size:9px;font-weight:500">소득세 10%</span></span>
+    <span class="vl" id="r-local-pay-val" style="font-weight:600">0원</span>
+  </div>
+  <div class="cr tot" style="font-size:15px;border-top:2px solid var(--border2);margin-top:4px;padding-top:10px">
+    <span class="lb" id="r-total-pay-lbl" style="font-weight:700">합계 추가 납부 (+)</span>
+    <span class="vl" id="r-total-pay-val" style="font-size:16px;font-weight:700">0원</span>
+  </div>
+  <div class="note" style="margin-top:8px">※ 지방소득세는 결정세액의 10%이며 별도 계좌로 납부합니다. 기납부세액의 지방소득세분도 소득세의 10%로 가정해 환급/납부액을 산출했습니다.</div>
+</div>
+
+<div class="btn-row" id="btn-row"></div>
+</div><!-- end app-wrap -->
+
+<script>
+// ── 비밀번호 (변경 시 이 값만 수정) ──
+const PASSWORD = '1234'; // ← 비밀번호 여기서 변경
+
+function checkPw(){
+  if(sessionStorage.getItem('roso_auth') === PASSWORD){
+    document.getElementById('pw-screen').style.display='none';
+    document.getElementById('app-wrap').style.display='block';
+    return;
+  }
+  if(document.getElementById('pw-input').value === PASSWORD){
+    sessionStorage.setItem('roso_auth', PASSWORD);
+    document.getElementById('pw-screen').style.display='none';
+    document.getElementById('app-wrap').style.display='block';
+  } else {
+    document.getElementById('pw-err').textContent='비밀번호가 틀렸습니다.';
+    document.getElementById('pw-input').value='';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+// 세션 유지 확인
+if(sessionStorage.getItem('roso_auth') === PASSWORD){
+  document.getElementById('pw-screen').style.display='none';
+  document.getElementById('app-wrap').style.display='block';
+}
+const parseComma=s=>parseInt((s+'').replace(/,/g,''),10)||0;
+const toComma=n=>Math.round(n).toLocaleString('ko-KR');
+const fmt=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+
+function bindMoney(id,onChange){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('input',e=>{
+    const raw=e.target.value.replace(/[^0-9]/g,'');
+    const num=parseInt(raw,10)||0;
+    e.target.value=num?num.toLocaleString('ko-KR'):'';
+    onChange(num);
+  });
+}
+function setMoneyField(id,num){
+  const el=document.getElementById(id);
+  if(!el||document.activeElement===el)return;
+  el.value=num>0?toComma(num):'';
+}
+function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+
+function togglePenalty(){
+  const content=document.getElementById('penalty-content');
+  const arrow=document.getElementById('penalty-arrow');
+  if(!content)return;
+  const isOpen=content.style.display!=='none';
+  content.style.display=isOpen?'none':'';
+  if(arrow)arrow.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
+}
+
+// ── 프리랜서 구간표 ──
+const FL_BR=[
+  {lbl:'~3,500만원',      max:35000000, mode:'auto',rate:1.00},
+  {lbl:'3,501~3,999만원', max:39990000, mode:'auto',rate:1.00},
+  {lbl:'4,000~4,499만원', max:44990000, mode:'auto',rate:0.90},
+  {lbl:'4,500~5,099만원', max:50990000, mode:'auto',rate:0.85},
+  {lbl:'5,100~5,599만원', max:55990000, mode:'auto',rate:0.80},
+  {lbl:'5,600~5,999만원', max:59990000, mode:'auto',rate:0.75},
+  {lbl:'6,000~6,499만원', max:64990000, mode:'auto',rate:0.70},
+  {lbl:'6,500~6,999만원', max:69990000, mode:'auto',rate:0.60},
+  {lbl:'7,000~7,499만원', max:74990000, mode:'auto',rate:0.50},
+  {lbl:'7,500~7,999만원', max:79990000, mode:'rate'},
+  {lbl:'8,000~8,999만원', max:89990000, mode:'rate'},
+  {lbl:'9,000~9,999만원', max:99990000, mode:'rate'},
+  {lbl:'1억원 이상',       max:Infinity, mode:'rate'},
+];
+const getFlBr=v=>FL_BR.find(b=>v<=b.max)||FL_BR[FL_BR.length-1];
+
+// ── 프리랜서 수수료 계산 ──
+function calcFlFee(suip){
+  if(suip<=0)return 0;
+  const br=getFlBr(suip);
+  if(br.mode==='rate'){
+    if(suip<=79990000)return 250000;
+    if(suip<=89990000)return 300000;
+    if(suip<=99990000)return 350000;
+    return null;
+  }
+  const refund=Math.round(suip*0.033*br.rate);
+  let fee;
+  if(suip<=35000000)      fee=Math.floor(refund*0.10/1000)*1000;
+  else if(suip<=39990000) fee=Math.floor((130000+(refund-1155000)*0.13)/1000)*1000;
+  else if(suip<=44990000) fee=Math.floor((160000+(refund-1287000)*0.14)/1000)*1000;
+  else if(suip<=50990000) fee=Math.floor((180000+(refund-1306800)*0.15)/1000)*1000;
+  else if(suip<=55990000) fee=Math.floor(refund*0.15/1000)*1000;
+  else if(suip<=59990000) fee=Math.floor(refund*0.15/1000)*1000;
+  else if(suip<=64990000) fee=Math.floor(refund*0.17/1000)*1000;
+  else if(suip<=69990000) fee=Math.floor(refund*0.17/1000)*1000;
+  else fee=250000;
+  return Math.max(fee,50000);
+}
+
+// ── 다중 행 빈 객체 생성기 ──
+function newBizRow(){
+  return {
+    suip:0,
+    simpleRate:null,   // 단순경비율 (%)
+    applyRate:null,    // 적용비율 (%)
+    incomeRate:null,   // 소득율 (%) - 자동 또는 수동
+    sodeum:0,          // 소득금액 (원)
+    rateManual:false,  // 소득율 수동 입력 여부
+    sodeumManual:false // 소득금액 수동 입력 여부
+  };
+}
+
+// ── 상태 ──
+const S={
+  flSuip:70000000,flRateInput:null,flSodeum:0,flManual:false,
+  ymSuip:0,ymRate:null,ymSodeum:0,
+  sjList:[newBizRow()],   // 사업자등록 사업소득 (다중)
+  giList:[newBizRow()],   // 기타소득 (다중)
+  roSalary:21600000,
+  dBoin:1,dSpouse:0,dParent:0,dChild:0,dElderly:0,dDisabled:0,dSingle:0,
+  dPension:0,dHealth:1057780,dHousing:0,dHousingLoan:3925158,dCard:3067560,dEtc:0,
+  tcChild:0,tcBirth:0,tcIrp:12000000,tcPenSav:0,tcIsa:0,
+  tcIns:120000,tcInsD:0,tcMed:0,tcEdu:0,tcDon:0,tcRent:0,tcEtc:0,
+  prepaid:0,
+  // 복식부기의무자 간편장부 신고 가산세 입력값
+  pnBizSodeum:0, pnBizSuip:0, pnBizPrepaid:0
+};
+let step=0;
+const STEPS=['소득 입력','소득공제','세액공제','결과'];
+
+// ── 행 단위 소득금액 계산 ──
+// 우선순위: 소득금액 수동 > 소득율(수동/자동) > 0
+// 자동 소득율 = (100 − 단순경비율) × 적용비율 / 100
+//   적용비율 100% → 단순경비율 그대로 적용 (1차 소득율)
+//   적용비율 ↓   → 1차 소득율을 그 비율만큼 깎아서 최종 소득율 ↓
+function calcRowSodeum(row){
+  if(row.suip<=0) return 0;
+  if(row.sodeumManual && row.sodeum>0) return row.sodeum;
+  let rate = null;
+  if(row.rateManual && row.incomeRate!==null){
+    rate = row.incomeRate;
+  } else if(row.simpleRate!==null && row.applyRate!==null){
+    rate = (100 - row.simpleRate) * row.applyRate / 100;
+  }
+  if(rate===null) return 0;
+  return Math.round(row.suip * rate / 100);
+}
+
+// 행의 자동값을 화면에 반영 (수동 모드가 아닐 때만)
+function refreshRowAuto(prefix, idx){
+  const list = prefix==='sj' ? S.sjList : S.giList;
+  const row = list[idx];
+  // 자동 소득율
+  if(!row.rateManual){
+    if(row.simpleRate!==null && row.applyRate!==null){
+      const auto = (100 - row.simpleRate) * row.applyRate / 100;
+      row.incomeRate = Math.round(auto*100)/100;
+      const el = document.getElementById(`${prefix}-rate-${idx}`);
+      if(el && document.activeElement!==el) el.value = row.incomeRate;
+    } else {
+      row.incomeRate = null;
+      const el = document.getElementById(`${prefix}-rate-${idx}`);
+      if(el && document.activeElement!==el) el.value = '';
+    }
+  }
+  // 자동 소득금액
+  if(!row.sodeumManual){
+    const sd = calcRowSodeum(row);
+    row.sodeum = sd;
+    const el = document.getElementById(`${prefix}-sodeum-${idx}`);
+    if(el && document.activeElement!==el) el.value = sd>0 ? toComma(sd) : '';
+  }
+}
+
+function calcFlSodeumAuto(suip){
+  if(suip<=0)return 0;
+  const br=getFlBr(suip);
+  if(br.mode==='rate')return S.flRateInput!==null?Math.round(suip*S.flRateInput/100):0;
+  const ded=1500000,paid=suip*0.03,dec=paid*(1-br.rate),san=dec+70000;
+  const pivot=san/0.06;
+  const taxBase=pivot<=14000000?pivot:(san+1260000)/0.15;
+  return Math.round(taxBase+ded);
+}
+function calcFlSodeum(){return S.flManual?S.flSodeum:calcFlSodeumAuto(S.flSuip);}
+function calcSimpleSodeum(suip,rate,manual){return(rate!==null&&suip>0)?Math.round(suip*rate/100):manual;}
+
+function roDeduct(sal){
+  if(sal<=0)return 0;
+  let d;
+  if(sal<=5e6)d=sal*.7;
+  else if(sal<=15e6)d=3.5e6+(sal-5e6)*.4;
+  else if(sal<=45e6)d=7.5e6+(sal-15e6)*.15;
+  else if(sal<=1e8)d=12e6+(sal-45e6)*.05;
+  else d=14.75e6+(sal-1e8)*.02;
+  return Math.min(d,20e6);
+}
+// ── 종합소득세율 (2025년 귀속, 소득세법 제55조) ──
+// 과세표준        세율    누진공제
+// 1,400만 이하     6%     -
+// 1,400 ~ 5,000만  15%    126만
+// 5,000 ~ 8,800만  24%    576만
+// 8,800만 ~ 1.5억  35%    1,544만
+// 1.5억 ~ 3억      38%    1,994만
+// 3억 ~ 5억        40%    2,594만
+// 5억 ~ 10억       42%    3,594만
+// 10억 초과        45%    6,594만
+function calcTax(b){
+  if(b<=0)return 0;
+  if(b<=14e6) return b*.06;
+  if(b<=50e6) return b*.15-1260000;
+  if(b<=88e6) return b*.24-5760000;
+  if(b<=150e6)return b*.35-15440000;
+  if(b<=300e6)return b*.38-19940000;
+  if(b<=500e6)return b*.40-25940000;
+  if(b<=1e9)  return b*.42-35940000;
+  return            b*.45-65940000;
+}
+function taxRateLbl(b){
+  if(b<=0)return'−';
+  if(b<=14e6) return'6%';
+  if(b<=50e6) return'15%';
+  if(b<=88e6) return'24%';
+  if(b<=150e6)return'35%';
+  if(b<=300e6)return'38%';
+  if(b<=500e6)return'40%';
+  if(b<=1e9)  return'42%';
+  return            '45%';
+}
+
+// ── 근로소득세액공제 한도 (소득세법 제59조 제2항, 2025년 귀속) ──
+// 1. 총급여 3,300만원 이하: 74만원
+// 2. 3,300만원 초과 ~ 7,000만원 이하: 74만원 - (총급여-3,300만원)×8/1000, 최저 66만원
+// 3. 7,000만원 초과 ~ 1억2천만원 이하: 66만원 - (총급여-7,000만원)×1/2, 최저 50만원
+//    (산식 그대로면 즉시 음수 → 단서로 사실상 50만원 고정)
+// 4. 1억2천만원 초과: 50만원 - (총급여-1억2천만원)×1/2, 최저 20만원 (사실상 20만원 고정)
+function roTaxCreditLimit(salary){
+  if(salary<=0) return 0;
+  if(salary<=33000000)  return 740000;
+  if(salary<=70000000)  return Math.max(740000 - (salary-33000000)*0.008, 660000);
+  if(salary<=120000000) return Math.max(660000 - (salary-70000000)*0.5,   500000);
+  return                       Math.max(500000 - (salary-120000000)*0.5,  200000);
+}
+
+function compute(){
+  const flSodeum=calcFlSodeum();
+  const ymSodeum=calcSimpleSodeum(S.ymSuip,S.ymRate,S.ymSodeum);
+  // 다중 행 합산
+  const sjSodeum=S.sjList.reduce((s,r)=>s+calcRowSodeum(r),0);
+  const giSodeum=S.giList.reduce((s,r)=>s+calcRowSodeum(r),0);
+  const sjSuipTotal=S.sjList.reduce((s,r)=>s+r.suip,0);
+  const giSuipTotal=S.giList.reduce((s,r)=>s+r.suip,0);
+
+  const rd=roDeduct(S.roSalary),ri=Math.max(S.roSalary-rd,0);
+  const totalIncome=flSodeum+ymSodeum+sjSodeum+giSodeum+ri;
+  const injeok=S.dBoin*1.5e6+S.dSpouse*1.5e6+S.dParent*1.5e6+S.dChild*1.5e6+S.dElderly*1e6+S.dDisabled*2e6+S.dSingle*1e6;
+
+  // ── 소득공제 분리 ──
+  const specialDeduct=S.dHealth+S.dHousingLoan;
+  const otherDeduct=S.dPension+S.dHousing+S.dCard+S.dEtc;
+  // ── 세액공제 분리 ──
+  const specialTaxCr=S.tcIns+S.tcInsD+S.tcMed+S.tcEdu+S.tcDon+S.tcRent;
+  const otherTaxCr=S.tcEtc;
+
+  const hasBizIncome=(flSodeum+ymSodeum+sjSodeum+giSodeum)>0;
+  const pcRate=hasBizIncome?(totalIncome<=45e6?.15:.12):(S.roSalary<=55e6?.15:.12);
+
+  const cn=Math.round(S.tcChild);
+  const childCr=cn===1?250000:cn===2?550000:cn>=3?550000+(cn-2)*400000:0;
+  const bn=Math.round(S.tcBirth);
+  let birthCr=0;
+  if(bn>=1)birthCr+=300000;if(bn>=2)birthCr+=500000;if(bn>=3)birthCr+=700000*(bn-2);
+  const penTotal=Math.min(Math.min(S.tcIrp,9e6)+Math.min(S.tcPenSav,6e6)+Math.min(S.tcIsa,3e6),9e6);
+  const penTC=Math.round(penTotal*pcRate);
+
+  // 근로소득세액공제 한도 (총급여 기준)
+  const roLimit=roTaxCreditLimit(S.roSalary);
+
+  function calcOne(taxBase,isStd){
+    const tax=calcTax(taxBase);
+    // 소득세법 제59조 제1항: "근로소득에 대한 종합소득산출세액" = 종합소득산출세액 × (근로소득금액/종합소득금액)
+    const roTax=totalIncome>0?tax*(ri/totalIncome):0;
+    // 공제율: 130만원 이하 55%, 초과분 30%
+    let roTC=roTax<=1.3e6?roTax*.55:715000+(roTax-1.3e6)*.30;
+    // 한도 적용 (총급여 기준, 소득세법 제59조 제2항)
+    roTC=Math.min(roTC,roLimit);
+    let rem=tax;
+    const roTCa=Math.min(roTC,rem);rem-=roTCa;
+    const childCra=Math.min(childCr+birthCr,rem);rem-=childCra;
+    let specialTCa=0,stdTCa=0;
+    if(isStd){
+      const stdCr=ri>0?130000:(hasBizIncome?70000:0);
+      stdTCa=Math.min(stdCr,rem);rem-=stdTCa;
+    }else{
+      specialTCa=Math.min(specialTaxCr,rem);rem-=specialTCa;
+    }
+    const penTCa=Math.min(penTC,rem);rem-=penTCa;
+    const penAppliedAmount=pcRate>0?Math.round(penTCa/pcRate):0;
+    const otherTCa=Math.min(otherTaxCr,rem);rem-=otherTCa;
+    const totalTC=roTCa+childCra+penTCa+specialTCa+stdTCa+otherTCa;
+    const finalTax=Math.max(tax-totalTC,0);
+    return{tax,roTax,roTC:roTCa,childCr:childCra,penTC:penTCa,penAppliedAmount,specialTC:specialTCa,stdTC:stdTCa,otherTC:otherTCa,totalTC,finalTax};
+  }
+
+  const taxBaseA=Math.max(totalIncome-injeok-specialDeduct-otherDeduct,0);
+  const A=calcOne(taxBaseA,false);
+  const taxBaseB=Math.max(totalIncome-injeok-otherDeduct,0);
+  const taxB=calcTax(taxBaseB);
+  const roTaxB=totalIncome>0?taxB*(ri/totalIncome):0;
+  let roTCb=roTaxB<=1.3e6?roTaxB*.55:715000+(roTaxB-1.3e6)*.30;
+  roTCb=Math.min(roTCb,roLimit);
+  const stdCrAmt=ri>0?130000:(hasBizIncome?70000:0);
+  let remB=taxB;
+  const B_roTC=Math.min(roTCb,remB);remB-=B_roTC;
+  const B_childCr=Math.min(A.childCr,remB);remB-=B_childCr;
+  const B_stdTC=Math.min(stdCrAmt,remB);remB-=B_stdTC;
+  const B_penTC=Math.min(A.penTC,remB);remB-=B_penTC;
+  const B_otherTC=Math.min(A.otherTC,remB);remB-=B_otherTC;
+  const B_totalTC=B_roTC+B_childCr+B_stdTC+B_penTC+B_otherTC;
+  const B_finalTax=Math.max(taxB-B_totalTC,0);
+  const B={tax:taxB,roTax:roTaxB,roTC:B_roTC,childCr:B_childCr,penTC:B_penTC,penAppliedAmount:A.penAppliedAmount,specialTC:0,stdTC:B_stdTC,otherTC:B_otherTC,totalTC:B_totalTC,finalTax:B_finalTax};
+
+  let useStandard;
+  if(ri>0){
+    useStandard=B.finalTax<A.finalTax;
+  }else if(hasBizIncome){
+    useStandard=true;
+  }else{
+    useStandard=false;
+  }
+  const R=useStandard?B:A;
+  const taxBase=useStandard?taxBaseB:taxBaseA;
+  const totalD=useStandard?(injeok+otherDeduct):(injeok+specialDeduct+otherDeduct);
+  const rate=taxRateLbl(taxBase);
+  const localTax=R.finalTax*.1;
+  const fee=calcFlFee(S.flSuip);
+
+  // ── 복식부기의무자 간편장부 신고 가산세 ──
+  const pnBizSodeum=S.pnBizSodeum||0;
+  const pnBizSuip=S.pnBizSuip||0;
+  const pnBizPrepaid=S.pnBizPrepaid||0;
+  const pnRatio=(totalIncome>0&&pnBizSodeum>0)?(pnBizSodeum/totalIncome):0;
+  const muJangBase=Math.round(R.tax*pnRatio);
+  const muJangPenalty=Math.round(muJangBase*0.2);
+  const muShinBase=Math.round(R.finalTax*pnRatio);
+  const muShinNetTax=Math.max(0,muShinBase-pnBizPrepaid);
+  const muShinByTax=Math.round(muShinNetTax*0.2);
+  const muShinByRev=Math.round(pnBizSuip*7/10000);
+  const muShinPenalty=(pnBizSodeum>0||pnBizSuip>0)?Math.max(muShinByTax,muShinByRev):0;
+  const appliedPenalty=(pnBizSodeum>0||pnBizSuip>0)?Math.max(muJangPenalty,muShinPenalty):0;
+
+  const totalDeterminedTax=R.finalTax+appliedPenalty;
+  const payRefund=totalDeterminedTax-S.prepaid;
+  const localPayRefund=payRefund*.1;
+  const totalPayRefund=payRefund+localPayRefund;
+
+  return{rd,ri,flSodeum,ymSodeum,sjSodeum,giSodeum,sjSuipTotal,giSuipTotal,totalIncome,
+    injeok,specialDeduct,otherDeduct,etcD:specialDeduct+otherDeduct,totalD,
+    taxBase,tax:R.tax,roTax:R.roTax,roLimit,rate,pcRate,hasBizIncome,useStandard,
+    finalTaxA:A.finalTax,finalTaxB:B.finalTax,
+    roTC:R.roTC,childCr:R.childCr,birthCr:0,
+    penTC:R.penTC,penTCraw:penTC,penTotal,penRaw:S.tcIrp+S.tcPenSav+S.tcIsa,penAppliedAmount:R.penAppliedAmount,
+    specialTC:R.specialTC,stdTC:R.stdTC,otherTC:R.otherTC,
+    totalTC:R.totalTC,finalTax:R.finalTax,totalDeterminedTax,localTax,payRefund,localPayRefund,totalPayRefund,fee,
+    pnBizSodeum,pnBizSuip,pnBizPrepaid,
+    muJangBase,muJangPenalty,
+    muShinBase,muShinNetTax,muShinByTax,muShinByRev,muShinPenalty,
+    appliedPenalty};
+}
+
+// ── 프리랜서 카드 UI ──
+function updateFlCard(r){
+  const suip=S.flSuip;
+  const badge=document.getElementById('fl-br-badge');
+  const card=document.getElementById('fl-card');
+  const rateWrap=document.getElementById('fl-rate-wrap');
+  const chip=document.getElementById('fl-auto-chip');
+  if(suip<=0){badge.style.display='none';card.classList.remove('high');rateWrap.style.display='none';if(chip)chip.style.display='none';return;}
+  const br=getFlBr(suip);
+  badge.style.display='';badge.textContent=br.lbl;
+  if(br.mode==='rate'){
+    badge.className='badge b-red';card.classList.add('high');rateWrap.style.display='block';
+    if(chip)chip.style.display=S.flRateInput!==null?'':'none';
+  }else{
+    badge.className='badge b-blue';card.classList.remove('high');rateWrap.style.display='none';
+    if(chip)chip.style.display='';
+  }
+  if(!S.flManual)setMoneyField('fl-sodeum',r.flSodeum);
+}
+
+function updateUI(){
+  const r=compute();
+  const pr=r.payRefund>=0;
+  document.getElementById('sb-income').textContent=toComma(r.totalIncome)+'원';
+  document.getElementById('sb-final').textContent=toComma(r.finalTax)+'원';
+  const sbPay=document.getElementById('sb-pay');
+  sbPay.textContent=(pr?'+':'')+toComma(r.totalPayRefund)+'원';
+  sbPay.className='sb-val '+(pr?'pos':'neg');
+  document.getElementById('sb-pay-lbl').textContent=pr?'납부 (합계)':'환급 (합계)';
+  updateFlCard(r);
+  const rdEl=document.getElementById('ro-deduct'),riEl=document.getElementById('ro-income');
+  if(rdEl)rdEl.value=fmt(r.rd);if(riEl)riEl.value=fmt(r.ri);
+  setText('total-income-p0',fmt(r.totalIncome));
+  // 연말정산 사업소득 자동 표시
+  if(S.ymRate!==null) setMoneyField('ym-sodeum',r.ymSodeum);
+  setText('d-injeok-total',fmt(r.injeok));
+  setText('d-total',fmt(r.totalD));
+  setText('d-taxbase',fmt(r.taxBase));
+  setText('d-rate',r.rate);
+  setText('d-calctax',fmt(r.tax));
+  setText('tc-ro-cr','− '+fmt(r.roTC));
+  // 한도 칩
+  const limitChip=document.getElementById('tc-ro-limit-chip');
+  if(limitChip){
+    if(S.roSalary>0){
+      limitChip.style.display='';
+      limitChip.textContent='한도 '+toComma(r.roLimit)+'원';
+    }else{
+      limitChip.style.display='none';
+    }
+  }
+  setText('tc-child-cr','− '+fmt(r.childCr));
+  setText('tc-pen-cr','− '+fmt(r.penTC)+(r.penTCraw>r.penTC?' (한도초과로 일부적용)':''));
+  const tcSpcEl=document.getElementById('tc-special-cr-lbl');
+  const stdNote=document.getElementById('tc-std-note');
+  if(r.useStandard){
+    if(tcSpcEl)tcSpcEl.textContent=`표준세액공제 (${r.ri>0?'13만원':'7만원'})`;
+    setText('tc-special-cr','− '+fmt(r.stdTC));
+    if(stdNote)stdNote.style.display='';
+  }else{
+    if(tcSpcEl)tcSpcEl.textContent='보험·의료·교육·기부·월세 등 (한도 적용)';
+    setText('tc-special-cr','− '+fmt(r.specialTC));
+    if(stdNote)stdNote.style.display='none';
+  }
+  setText('tc-total-cr','− '+fmt(r.totalTC));
+  const pnEl=document.getElementById('tc-pen-note');
+  if(pnEl){
+    const thr=r.hasBizIncome?'종합소득 4,500만':'총급여 5,500만';
+    pnEl.textContent=`연금세액공제율 ${r.pcRate*100}% — ${thr} 기준 ${r.pcRate===.15?'이하':'초과'}`;
+  }
+  {
+    setText('res-income',fmt(r.totalIncome));
+    setText('res-taxbase',fmt(r.taxBase));
+    setText('r-income',fmt(r.totalIncome));
+    setText('r-deduct','− '+fmt(r.totalD));
+    setText('r-taxbase',fmt(r.taxBase));
+    setText('r-rate',r.rate);
+    setText('r-calctax',fmt(r.tax));
+    setText('r-taxcr','− '+fmt(r.totalTC));
+    setText('r-final',fmt(r.finalTax));
+    // 가산세가 있을 때만 표시
+    const penRow=document.getElementById('r-penalty-row');
+    const totRow=document.getElementById('r-total-tax-row');
+    if(r.appliedPenalty>0){
+      if(penRow)penRow.style.display='';
+      if(totRow)totRow.style.display='';
+      setText('r-penalty','+ '+fmt(r.appliedPenalty));
+      setText('r-total-tax',fmt(r.totalDeterminedTax));
+    }else{
+      if(penRow)penRow.style.display='none';
+      if(totRow)totRow.style.display='none';
+    }
+    setText('r-local',fmt(r.localTax));
+    setText('r-local-note',fmt(r.localTax));
+    const roRow=document.getElementById('r-tc-ro-row');
+    if(roRow){
+      roRow.style.display='';
+      // 안분/한도 정보 라벨
+      let roLbl='· 근로소득세액공제';
+      if(S.roSalary>0&&r.totalIncome>0){
+        const ratio=(r.ri/r.totalIncome*100).toFixed(2);
+        roLbl=`· 근로소득세액공제 (근로분 ${ratio}% 안분, 한도 ${toComma(r.roLimit)})`;
+      }
+      const roLblEl=document.querySelector('#r-tc-ro-row .lb');
+      if(roLblEl)roLblEl.textContent=roLbl;
+      setText('r-tc-ro','− '+fmt(r.roTC));
+    }
+    const chRow=document.getElementById('r-tc-child-row');
+    if(chRow){chRow.style.display='';setText('r-tc-child','− '+fmt(r.childCr));}
+    const peRow=document.getElementById('r-tc-pen-row');
+    if(peRow){
+      peRow.style.display='';
+      let peLbl='· 연금계좌세액공제';
+      if(r.penAppliedAmount<r.penTotal&&r.penTotal>0){
+        peLbl=`· 연금계좌세액공제 (한도 ${toComma(r.penAppliedAmount)}원 적용)`;
+      }
+      else if(r.penTotal<r.penRaw){
+        peLbl=`· 연금계좌세액공제 (납입한도 ${toComma(r.penTotal)}원 적용)`;
+      }
+      const peLblEl=document.querySelector('#r-tc-pen-row .lb');
+      if(peLblEl)peLblEl.textContent=peLbl;
+      setText('r-tc-pen','− '+fmt(r.penTC));
+    }
+    const spRow=document.getElementById('r-tc-special-row');
+    const spLbl=document.getElementById('r-tc-special-lbl');
+    if(r.useStandard){
+      if(spRow){spRow.style.display='';setText('r-tc-special','− '+fmt(r.stdTC));}
+      if(spLbl)spLbl.textContent=`· 표준세액공제 (${r.ri>0?'13만원':'7만원'})`;
+    }else{
+      if(spRow){spRow.style.display='';setText('r-tc-special','− '+fmt(r.specialTC));}
+      if(spLbl)spLbl.textContent='· 특별세액공제 (보험·의료·교육·기부·월세)';
+    }
+    const otRow=document.getElementById('r-tc-other-row');
+    if(otRow){otRow.style.display='';setText('r-tc-other','− '+fmt(r.otherTC));}
+    const lbl=document.getElementById('r-pay-lbl'),val=document.getElementById('r-pay-val');
+    if(lbl)lbl.textContent=pr?'소득세 추가 납부 (+)':'소득세 환급 (−)';
+    if(val){val.textContent=(pr?'+':'')+fmt(r.payRefund);val.className='vl '+(pr?'pos':'neg');val.style.fontWeight='600';}
+    // 지방소득세 환급/납부
+    const localLbl=document.getElementById('r-local-pay-lbl'),localVal=document.getElementById('r-local-pay-val');
+    if(localLbl){
+      const txt=pr?'지방소득세 추가 납부 (+) ':'지방소득세 환급 (−) ';
+      localLbl.innerHTML=txt+'<span class="auto-chip" style="font-size:9px;font-weight:500">소득세 10%</span>';
+    }
+    if(localVal){localVal.textContent=(pr?'+':'')+fmt(r.localPayRefund);localVal.className='vl '+(pr?'pos':'neg');localVal.style.fontWeight='600';}
+    // 합계 (소득세 + 지방소득세)
+    const totLbl=document.getElementById('r-total-pay-lbl'),totVal=document.getElementById('r-total-pay-val');
+    if(totLbl)totLbl.textContent=pr?'합계 추가 납부 (+)':'합계 환급 (−)';
+    if(totVal){totVal.textContent=(pr?'+':'')+fmt(r.totalPayRefund);totVal.className='vl '+(pr?'pos':'neg');totVal.style.fontSize='16px';totVal.style.fontWeight='700';}
+    const abBlk=document.getElementById('ab-compare-block');
+    if(abBlk){
+      if(r.ri>0&&(r.specialDeduct>0||S.tcIns+S.tcInsD+S.tcMed+S.tcEdu+S.tcDon+S.tcRent>0)){
+        abBlk.style.display='';
+        setText('r-finalA',fmt(r.finalTaxA));
+        setText('r-finalB',fmt(r.finalTaxB));
+        const diff=Math.abs(r.finalTaxA-r.finalTaxB);
+        setText('r-ab-pick',r.useStandard?'✓ B안 (표준세액공제) 적용':'✓ A안 (특별공제) 적용');
+        setText('r-ab-saving',diff>0?fmt(diff)+' 절감':'동일');
+      }else{
+        abBlk.style.display='none';
+      }
+    }
+    // ── 가산세 표시 갱신 ──
+    const penBadge=document.getElementById('penalty-badge');
+    if(penBadge){
+      if(r.appliedPenalty>0){
+        penBadge.style.display='';
+        penBadge.textContent='+ '+fmt(r.appliedPenalty)+' 적용';
+      }else{
+        penBadge.style.display='none';
+      }
+    }
+    setText('pn-mj-tax',fmt(r.tax));
+    setText('pn-mj-sodeum',fmt(r.pnBizSodeum));
+    setText('pn-mj-total',fmt(r.totalIncome));
+    setText('pn-mj-base',fmt(r.muJangBase));
+    setText('pn-mj-penalty',fmt(r.muJangPenalty));
+    setText('pn-ms-tax',fmt(r.finalTax));
+    setText('pn-ms-sodeum',fmt(r.pnBizSodeum));
+    setText('pn-ms-total',fmt(r.totalIncome));
+    setText('pn-ms-suip',fmt(r.pnBizSuip));
+    setText('pn-ms-base',fmt(r.muShinBase));
+    setText('pn-ms-prepaid',fmt(r.pnBizPrepaid));
+    setText('pn-ms-net',fmt(r.muShinNetTax));
+    setText('pn-ms-by-tax',fmt(r.muShinByTax));
+    setText('pn-ms-by-rev',fmt(r.muShinByRev));
+    setText('pn-ms-penalty',fmt(r.muShinPenalty));
+    const msPickLbl=document.getElementById('pn-ms-pick-lbl');
+    if(msPickLbl){
+      if(r.muShinByTax===0&&r.muShinByRev===0){
+        msPickLbl.textContent='무신고가산세';
+      }else if(r.muShinByTax>=r.muShinByRev){
+        msPickLbl.textContent='무신고가산세 (⑦×20% 적용)';
+      }else{
+        msPickLbl.textContent='무신고가산세 (④×0.07% 적용)';
+      }
+    }
+    setText('pn-applied',fmt(r.appliedPenalty));
+    const pnLbl=document.getElementById('pn-applied-lbl');
+    if(pnLbl){
+      if(r.muJangPenalty===0&&r.muShinPenalty===0){
+        pnLbl.textContent='적용 가산세 (입력값 없음)';
+      }else if(r.muJangPenalty>=r.muShinPenalty){
+        pnLbl.textContent='적용 가산세 (① 무기장가산세 채택)';
+      }else{
+        pnLbl.textContent='적용 가산세 (② 무신고가산세 채택)';
+      }
+    }
+  }
+}
+
+// ══ 다중 행 렌더링 / 바인딩 ══
+function bizRowHtml(prefix, idx, row){
+  const list = prefix==='sj' ? S.sjList : S.giList;
+  const canRemove = list.length > 1;
+  const titlePrefix = prefix==='sj' ? '사업장' : '종류';
+  return `
+    <div class="biz-row" data-idx="${idx}">
+      <div class="biz-row-head">
+        <span class="biz-row-title">${titlePrefix} ${idx+1}</span>
+        <button class="biz-row-rm" type="button" onclick="remove${prefix==='sj'?'Sj':'Gi'}Row(${idx})" ${canRemove?'':'disabled'}>✕</button>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>수입금액 (원)</label>
+        <input id="${prefix}-suip-${idx}" type="text" inputmode="numeric" placeholder="0" value="${row.suip>0?toComma(row.suip):''}">
+      </div>
+      <div class="g2m">
+        <div class="field"><label>단순경비율 (%)</label><input id="${prefix}-simple-${idx}" type="number" min="0" max="100" step="0.1" placeholder="예: 70.5" value="${row.simpleRate??''}"></div>
+        <div class="field"><label>적용비율 (%)</label><input id="${prefix}-apply-${idx}" type="number" min="0" max="200" step="0.1" placeholder="예: 100" value="${row.applyRate??''}"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>소득율 (%) <span class="auto-chip">자동/수동</span></label><input id="${prefix}-rate-${idx}" type="number" min="0" max="100" step="0.01" placeholder="자동계산" value="${row.incomeRate??''}"></div>
+        <div class="field"><label>소득금액 (원) <span class="auto-chip">자동/수동</span></label><input id="${prefix}-sodeum-${idx}" type="text" inputmode="numeric" placeholder="자동계산" value="${row.sodeum>0?toComma(row.sodeum):''}"></div>
+      </div>
+    </div>`;
+}
+
+function bindBizRow(prefix, idx){
+  const list = prefix==='sj' ? S.sjList : S.giList;
+  const row = list[idx];
+  bindMoney(`${prefix}-suip-${idx}`, v=>{
+    row.suip = v;
+    refreshRowAuto(prefix, idx);
+    updateUI();
+  });
+  document.getElementById(`${prefix}-simple-${idx}`)?.addEventListener('input', e=>{
+    const v = e.target.value.trim();
+    row.simpleRate = v==='' ? null : parseFloat(v);
+    row.rateManual = false;
+    row.sodeumManual = false;
+    refreshRowAuto(prefix, idx);
+    updateUI();
+  });
+  document.getElementById(`${prefix}-apply-${idx}`)?.addEventListener('input', e=>{
+    const v = e.target.value.trim();
+    row.applyRate = v==='' ? null : parseFloat(v);
+    row.rateManual = false;
+    row.sodeumManual = false;
+    refreshRowAuto(prefix, idx);
+    updateUI();
+  });
+  document.getElementById(`${prefix}-rate-${idx}`)?.addEventListener('input', e=>{
+    const v = e.target.value.trim();
+    if(v===''){
+      row.rateManual = false;
+      refreshRowAuto(prefix, idx);
+    } else {
+      row.incomeRate = parseFloat(v);
+      row.rateManual = true;
+    }
+    row.sodeumManual = false;
+    refreshRowAuto(prefix, idx);
+    updateUI();
+  });
+  bindMoney(`${prefix}-sodeum-${idx}`, v=>{
+    row.sodeum = v;
+    row.sodeumManual = v > 0;
+    updateUI();
+  });
+}
+
+function renderBizRows(prefix){
+  const list = prefix==='sj' ? S.sjList : S.giList;
+  const container = document.getElementById(`${prefix}-rows`);
+  if(!container) return;
+  container.innerHTML = list.map((row, idx) => bizRowHtml(prefix, idx, row)).join('');
+  list.forEach((_, idx) => bindBizRow(prefix, idx));
+}
+
+function addSjRow(){
+  S.sjList.push(newBizRow());
+  renderBizRows('sj');
+  updateUI();
+}
+function removeSjRow(idx){
+  if(S.sjList.length <= 1) return;
+  S.sjList.splice(idx, 1);
+  renderBizRows('sj');
+  updateUI();
+}
+function addGiRow(){
+  S.giList.push(newBizRow());
+  renderBizRows('gi');
+  updateUI();
+}
+function removeGiRow(idx){
+  if(S.giList.length <= 1) return;
+  S.giList.splice(idx, 1);
+  renderBizRows('gi');
+  updateUI();
+}
+
+// ── 인쇄 시트 생성 ──
+function buildPrintSheet(){
+  const r=compute();
+  const pr=r.payRefund>=0;
+  const name=document.getElementById('cust-name')?.value||'';
+  const tel=document.getElementById('cust-tel')?.value||'';
+  const today=new Date().toLocaleDateString('ko-KR');
+  const feeStr=r.fee===null?'상담 필요':toComma(r.fee)+'원';
+
+  const prow=(lbl,val,ind=false,tot=false)=>
+    `<div class="ps-row${ind?' ind':''}${tot?' tot':''}"><span class="pl">${lbl}</span><span class="pv">${val}</span></div>`;
+
+  const renderBizPrint = (list, label) => {
+    return list.filter(row => row.suip > 0).map((row, i) => {
+      const sd = calcRowSodeum(row);
+      let detail = '';
+      if(!row.rateManual && row.simpleRate!==null && row.applyRate!==null){
+        const eff = ((100 - row.simpleRate) * row.applyRate / 100).toFixed(2);
+        detail = `단순경비율 ${row.simpleRate}% × 적용 ${row.applyRate}% → 소득율 ${eff}%`;
+      } else if(row.rateManual && row.incomeRate!==null){
+        detail = `소득율 ${row.incomeRate}% (수동)`;
+      } else if(row.sodeumManual){
+        detail = `소득금액 직접 입력`;
+      }
+      return prow(`${label} ${i+1} 수입금액`, toComma(row.suip)) +
+             (detail ? prow(detail, '', true) : '') +
+             prow('└ 소득금액', toComma(sd), true);
+    }).join('');
+  };
+
+  const leftCol=`
+    <div>
+      <div class="ps-sec">소득 입력</div>
+      ${r.flSodeum>0?prow('프리랜서 수입금액',toComma(S.flSuip))+prow('소득금액 (자동)',toComma(r.flSodeum),true):''}
+      ${r.ymSodeum>0?prow('연말정산사업소득 수입',toComma(S.ymSuip))+prow('소득금액',toComma(r.ymSodeum),true):''}
+      ${renderBizPrint(S.sjList, '사업장')}
+      ${renderBizPrint(S.giList, '기타소득')}
+      ${S.roSalary>0?prow('근로소득 총급여',toComma(S.roSalary))+prow('근로소득금액 (자동)',toComma(r.ri),true):''}
+      ${prow('종합소득금액 합계',toComma(r.totalIncome),'',true)}
+    </div>`;
+
+  const injeokItems=[
+    S.dBoin?`본인 ${S.dBoin}인`:'',S.dSpouse?`배우자 ${S.dSpouse}인`:'',
+    S.dParent?`직계존속 ${S.dParent}인`:'',S.dChild?`직계비속 ${S.dChild}인`:'',
+    S.dElderly?`경로우대 ${S.dElderly}인`:'',S.dDisabled?`장애인 ${S.dDisabled}인`:'',
+    S.dSingle?'한부모':''
+  ].filter(Boolean).join(', ');
+
+  const rightCol=`
+    <div>
+      <div class="ps-sec">소득공제</div>
+      ${injeokItems?prow('인적공제 ('+injeokItems+')',toComma(r.injeok)):''}
+      ${S.dPension?prow('국민연금',toComma(S.dPension)):''}
+      ${S.dHealth?prow('건강+고용보험료'+(r.useStandard?' (표준선택)':''),toComma(r.useStandard?0:S.dHealth)):''}
+      ${S.dHousingLoan?prow('주택자금공제'+(r.useStandard?' (표준선택)':''),toComma(r.useStandard?0:S.dHousingLoan)):''}
+      ${S.dHousing?prow('주택마련저축',toComma(S.dHousing)):''}
+      ${S.dCard?prow('신용카드 등',toComma(S.dCard)):''}
+      ${S.dEtc?prow('기타공제',toComma(S.dEtc)):''}
+      ${prow('소득공제 합계',toComma(r.totalD),'',true)}
+      <div class="ps-sec" style="margin-top:8px">세액공제</div>
+      ${r.roTC>0?prow('근로소득세액공제 (한도 '+toComma(r.roLimit)+')',toComma(r.roTC)):''}
+      ${r.childCr>0?prow('자녀세액공제 ('+S.tcChild+'명)',toComma(r.childCr)):''}
+      ${r.penTC>0?prow('연금세액공제 ('+r.pcRate*100+'%)',toComma(r.penTC)):''}
+      ${r.useStandard?prow('표준세액공제 ('+(r.ri>0?'13만원':'7만원')+')',toComma(r.stdTC)):(r.specialTC>0?prow('보험·의료·교육 등',toComma(r.specialTC)):'')}
+      ${r.otherTC>0?prow('기타세액공제',toComma(r.otherTC)):''}
+      ${prow('세액공제 합계 (한도적용)',toComma(r.totalTC),'',true)}
+    </div>`;
+
+  // 근로소득세액공제 안분 상세 (인쇄용)
+  const roDetailBlock = (S.roSalary>0 && r.totalIncome>0) ? `
+    <div style="border:1px solid #bbb;border-radius:3px;padding:7px 9px;margin-bottom:8px;background:#f5f8ff;font-size:10px">
+      <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:5px;border-bottom:1px solid #bfdbfe;padding-bottom:3px">
+        근로소득세액공제 계산 (소득세법 §59)
+      </div>
+      <div class="ps-cr"><span class="cl">① 종합소득 산출세액</span><span>${toComma(r.tax)}원</span></div>
+      <div class="ps-cr"><span class="cl">② 종합소득금액</span><span>${toComma(r.totalIncome)}원</span></div>
+      <div class="ps-cr"><span class="cl">③ 근로소득금액</span><span>${toComma(r.ri)}원</span></div>
+      <div class="ps-cr"><span class="cl">④ 1−감면급여비율</span><span>1</span></div>
+      <div class="ps-cr"><span class="cl">⑤ 근로소득산출세액 = ① × ③ ÷ ② × ④</span><span>${toComma(r.roTax)}원</span></div>
+      <div class="ps-cr"><span class="cl">⑥ 총급여액</span><span>${toComma(S.roSalary)}원</span></div>
+      <div class="ps-cr"><span class="cl">⑦ 공제 한도 (총급여 기준)</span><span>${toComma(r.roLimit)}원</span></div>
+      <div class="ps-cr bold"><span class="cl">⑧ 근로소득세액공제</span><span>${toComma(r.roTC)}원</span></div>
+    </div>
+  ` : '';
+
+  document.getElementById('print-sheet').innerHTML=`
+  <div class="ps">
+    <div class="ps-head">
+      <div>
+        <div class="ps-title">2025년 귀속 근로소득세 합산 계산서</div>
+        <div class="ps-sub">사업소득 + 근로소득 합산 신고</div>
+      </div>
+      <div class="ps-right">출력일: ${today}<br>담당: ___________</div>
+    </div>
+    <div class="ps-cust">
+      <div class="ps-cf"><span class="ps-cl">고객명</span><span class="ps-cv">${name||'_____________'}</span></div>
+      <div class="ps-cf"><span class="ps-cl">연락처</span><span class="ps-cv">${tel||'_____________'}</span></div>
+
+      <div class="ps-cf"><span class="ps-cl">${pr?'합계 납부':'합계 환급'}</span><span class="ps-cv ${pr?'red':'green'}">${(pr?'+':'')+toComma(r.totalPayRefund)}원</span></div>
+    </div>
+    <div class="ps-two">${leftCol}${rightCol}</div>
+    ${roDetailBlock}
+    ${r.appliedPenalty>0?`
+    <div style="border:1px solid #bbb;border-radius:3px;padding:7px 9px;margin-bottom:8px;background:#fafafa;font-size:10px">
+      <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:5px;border-bottom:1px solid #ddd;padding-bottom:3px">
+        복식부기의무자 간편장부 신고 가산세 — ${r.muJangPenalty>=r.muShinPenalty?'① 무기장가산세 채택':'② 무신고가산세 채택'}
+      </div>
+      ${r.muJangPenalty>=r.muShinPenalty?`
+      <div class="ps-cr"><span class="cl">① 산출세액</span><span>${toComma(r.tax)}원</span></div>
+      <div class="ps-cr"><span class="cl">② 무기장 소득금액</span><span>${toComma(r.pnBizSodeum)}원</span></div>
+      <div class="ps-cr"><span class="cl">③ 종합소득금액</span><span>${toComma(r.totalIncome)}원</span></div>
+      <div class="ps-cr"><span class="cl">④ 기준금액 = ① × ② / ③</span><span>${toComma(r.muJangBase)}원</span></div>
+      <div class="ps-cr bold"><span class="cl">⑤ 무기장가산세 = ④ × 20%</span><span>${toComma(r.muJangPenalty)}원</span></div>
+      <div class="ps-cr" style="font-size:9px;color:#888;margin-top:2px"><span class="cl">(참고) 무신고가산세</span><span>${toComma(r.muShinPenalty)}원</span></div>
+      `:`
+      <div class="ps-cr"><span class="cl">① 납부세액 (결정세액)</span><span>${toComma(r.finalTax)}원</span></div>
+      <div class="ps-cr"><span class="cl">② 무신고소득금액</span><span>${toComma(r.pnBizSodeum)}원</span></div>
+      <div class="ps-cr"><span class="cl">③ 종합소득금액</span><span>${toComma(r.totalIncome)}원</span></div>
+      <div class="ps-cr"><span class="cl">④ 무신고수입금액</span><span>${toComma(r.pnBizSuip)}원</span></div>
+      <div class="ps-cr"><span class="cl">⑤ 무신고기준금액 = ① × ② / ③</span><span>${toComma(r.muShinBase)}원</span></div>
+      <div class="ps-cr"><span class="cl">⑥ 무신고기납부세액</span><span>${toComma(r.pnBizPrepaid)}원</span></div>
+      <div class="ps-cr"><span class="cl">⑦ 무신고납부세액 = MAX(0, ⑤−⑥)</span><span>${toComma(r.muShinNetTax)}원</span></div>
+      <div class="ps-cr" style="font-size:9px;color:#888;padding-left:12px"><span class="cl">└ ⑦ × 20%</span><span>${toComma(r.muShinByTax)}원</span></div>
+      <div class="ps-cr" style="font-size:9px;color:#888;padding-left:12px"><span class="cl">└ ④ × 7/10,000</span><span>${toComma(r.muShinByRev)}원</span></div>
+      <div class="ps-cr bold"><span class="cl">무신고가산세 (${r.muShinByTax>=r.muShinByRev?'⑦×20% 적용':'④×0.07% 적용'})</span><span>${toComma(r.muShinPenalty)}원</span></div>
+      <div class="ps-cr" style="font-size:9px;color:#888;margin-top:2px"><span class="cl">(참고) 무기장가산세</span><span>${toComma(r.muJangPenalty)}원</span></div>
+      `}
+      <div class="ps-cr" style="font-size:11px;font-weight:700;color:#b91c1c;border-top:1px solid #999;margin-top:4px;padding-top:4px"><span class="cl">적용 가산세</span><span>${toComma(r.appliedPenalty)}원</span></div>
+    </div>
+    `:''}
+    <div class="ps-calc">
+      <div class="ps-cr"><span class="cl">종합소득금액</span><span>${toComma(r.totalIncome)}원</span></div>
+      <div class="ps-cr"><span class="cl">소득공제</span><span>− ${toComma(r.totalD)}원</span></div>
+      <div class="ps-cr"><span class="cl">과세표준</span><span>${toComma(r.taxBase)}원</span></div>
+      <div class="ps-cr"><span class="cl">세율</span><span>${r.rate}</span></div>
+      <div class="ps-cr"><span class="cl">산출세액</span><span>${toComma(r.tax)}원</span></div>
+      <div class="ps-cr"><span class="cl">세액공제 합계</span><span>− ${toComma(r.totalTC)}원</span></div>
+      <div class="ps-cr bold"><span class="cl">결정세액</span><span>${toComma(r.finalTax)}원</span></div>
+      ${r.appliedPenalty>0?`
+      <div class="ps-cr"><span class="cl">+ 가산세 (복식부기·간편장부)</span><span>${toComma(r.appliedPenalty)}원</span></div>
+      <div class="ps-cr bold"><span class="cl">총 납부세액</span><span>${toComma(r.totalDeterminedTax)}원</span></div>
+      `:''}
+      <div class="ps-cr"><span class="cl">기납부세액</span><span>${toComma(S.prepaid)}원</span></div>
+      <div class="ps-cr"><span class="cl">소득세 ${pr?'추가 납부':'환급'}</span><span>${(pr?'+':'')+toComma(r.payRefund)}원</span></div>
+      <div class="ps-cr"><span class="cl">지방소득세 ${pr?'추가 납부':'환급'} (소득세의 10%)</span><span>${(pr?'+':'')+toComma(r.localPayRefund)}원</span></div>
+      <div class="ps-cr result ${pr?'red':''}"><span class="cl">${pr?'합계 추가 납부':'합계 환급세액'}</span><span>${(pr?'+':'')+toComma(r.totalPayRefund)}원</span></div>
+    </div>
+    <div class="ps-note">※ 지방소득세 ${toComma(r.localTax)}원은 결정세액의 10%로 별도 납부 · 본 계산서는 참고용이며 실제 세무프로그램 결과와 다를 수 있습니다.</div>
+  </div>`;
+}
+
+function renderSteps(){
+  document.getElementById('steps-bar').innerHTML=STEPS.map((lbl,i)=>{
+    const cls=i<step?'done':i===step?'active':'';
+    const dot=i<step?'✓':i+1;
+    const line=i<STEPS.length-1?`<div class="s-line"></div>`:'';
+    return`<div class="step-wrap" onclick="goStep(${i})" style="cursor:pointer"><div class="s-dot ${cls}">${dot}</div><span class="s-lbl ${cls==='active'?'active':''}">${lbl}</span></div>${line}`;
+  }).join('');
+}
+function renderSticky(){
+  document.getElementById('sticky-bar').innerHTML=`
+    <div class="sb-item"><span class="sb-lbl">종합소득금액</span><span class="sb-val" id="sb-income">0원</span></div>
+    <div class="sb-div"></div>
+    <div class="sb-item"><span class="sb-lbl">결정세액</span><span class="sb-val info" id="sb-final">0원</span></div>
+    <div class="sb-div"></div>
+    <div class="sb-item" style="text-align:right"><span class="sb-lbl" id="sb-pay-lbl">추가납부</span><span class="sb-val pos" id="sb-pay">0원</span></div>`;
+}
+function renderBtns(){
+  const isFirst=step===0,isLast=step===STEPS.length-1;
+  let html=`<button class="btn ghost danger" id="btn-reset">초기화</button>`;
+  if(!isFirst)html+=`<button class="btn ghost" id="btn-prev">← 이전</button>`;
+  if(!isLast)html+=`<button class="btn primary" id="btn-next">다음 →</button>`;
+  else html+=`<button class="btn ghost" id="btn-print" style="flex:1">인쇄 🖨</button>`;
+  document.getElementById('btn-row').innerHTML=html;
+  document.getElementById('btn-reset')?.addEventListener('click',resetAll);
+  document.getElementById('btn-prev')?.addEventListener('click',()=>goStep(step-1));
+  document.getElementById('btn-next')?.addEventListener('click',()=>goStep(step+1));
+  document.getElementById('btn-print')?.addEventListener('click',()=>{
+    buildPrintSheet();
+    window.print();
+  });
+}
+function goStep(n){
+  document.getElementById('page-'+step).classList.remove('show');
+  step=Math.max(0,Math.min(n,STEPS.length-1));
+  document.getElementById('page-'+step).classList.add('show');
+  renderSteps();renderBtns();window.scrollTo(0,0);updateUI();
+}
+function resetAll(){
+  if(!confirm('모든 입력값을 초기화하시겠습니까?'))return;
+  document.querySelectorAll('input[type="text"]').forEach(el=>el.value='');
+  document.querySelectorAll('input[type="number"]:not(.ro)').forEach(el=>{
+    el.value=el.id==='d-boin'?'1':'0';
+  });
+  Object.keys(S).forEach(k=>{
+    if(k==='sjList'||k==='giList') return;
+    S[k]=0;
+  });
+  S.dBoin=1;S.flRateInput=null;S.flManual=false;
+  S.ymRate=null;
+  S.sjList=[newBizRow()];
+  S.giList=[newBizRow()];
+  renderBizRows('sj');
+  renderBizRows('gi');
+  updateUI();
+}
+
+function bindInputs(){
+  bindMoney('fl-suip',v=>{S.flSuip=v;S.flManual=false;updateUI();});
+  document.getElementById('fl-rate')?.addEventListener('input',e=>{
+    const v=e.target.value.trim();S.flRateInput=v===''?null:parseFloat(v);S.flManual=false;updateUI();
+  });
+  bindMoney('fl-sodeum',v=>{S.flSodeum=v;S.flManual=true;updateUI();});
+  bindMoney('ym-suip',v=>{
+    S.ymSuip=v;
+    if(S.ymRate!==null) setMoneyField('ym-sodeum', Math.round(v*S.ymRate/100));
+    updateUI();
+  });
+  bindMoney('ym-sodeum',v=>{
+    S.ymSodeum=v; S.ymRate=null;
+    updateUI();
+  });
+  bindMoney('ro-salary',v=>{S.roSalary=v;updateUI();});
+  bindMoney('d-pension', v=>{S.dPension=v;updateUI();});
+  bindMoney('d-health', v=>{S.dHealth=v; updateUI();});
+  bindMoney('d-housing',v=>{S.dHousing=v;updateUI();});
+  bindMoney('d-housing-loan',v=>{S.dHousingLoan=v;updateUI();});
+  bindMoney('d-card',   v=>{S.dCard=v;   updateUI();});
+  bindMoney('d-etc',    v=>{S.dEtc=v;    updateUI();});
+  const dcCount={'dBoin':'d-boin','dSpouse':'d-spouse','dParent':'d-parent',
+    'dChild':'d-child','dElderly':'d-elderly','dDisabled':'d-disabled','dSingle':'d-single'};
+  Object.entries(dcCount).forEach(([k,id])=>{
+    document.getElementById(id)?.addEventListener('input',e=>{S[k]=parseFloat(e.target.value)||0;updateUI();});
+  });
+  bindMoney('tc-irp',   v=>{S.tcIrp=v;   updateUI();});
+  bindMoney('tc-pensav',v=>{S.tcPenSav=v;updateUI();});
+  bindMoney('tc-isa',   v=>{S.tcIsa=v;   updateUI();});
+  bindMoney('tc-ins',   v=>{S.tcIns=v;   updateUI();});
+  bindMoney('tc-insd',  v=>{S.tcInsD=v;  updateUI();});
+  bindMoney('tc-med',   v=>{S.tcMed=v;   updateUI();});
+  bindMoney('tc-edu',   v=>{S.tcEdu=v;   updateUI();});
+  bindMoney('tc-don',   v=>{S.tcDon=v;   updateUI();});
+  bindMoney('tc-rent',  v=>{S.tcRent=v;  updateUI();});
+  bindMoney('tc-etc',   v=>{S.tcEtc=v;   updateUI();});
+  document.getElementById('tc-child')?.addEventListener('input',e=>{S.tcChild=parseFloat(e.target.value)||0;updateUI();});
+  document.getElementById('tc-birth')?.addEventListener('input',e=>{S.tcBirth=parseFloat(e.target.value)||0;updateUI();});
+  bindMoney('prepaid',  v=>{S.prepaid=v; updateUI();});
+  bindMoney('pn-biz-sodeum',v=>{S.pnBizSodeum=v;updateUI();});
+  bindMoney('pn-biz-suip',  v=>{S.pnBizSuip=v;  updateUI();});
+  bindMoney('pn-biz-prepaid',v=>{S.pnBizPrepaid=v;updateUI();});
+}
+
+renderSticky();renderSteps();renderBtns();bindInputs();
+renderBizRows('sj');
+renderBizRows('gi');
+
+function initFields(){
+  const mf={'fl-suip':S.flSuip,'ym-suip':S.ymSuip,'ym-sodeum':S.ymSodeum,
+    'ro-salary':S.roSalary,'d-pension':S.dPension,'d-health':S.dHealth,
+    'd-housing':S.dHousing,'d-housing-loan':S.dHousingLoan,'d-card':S.dCard,'d-etc':S.dEtc,
+    'tc-irp':S.tcIrp,'tc-pensav':S.tcPenSav,'tc-isa':S.tcIsa,
+    'tc-ins':S.tcIns,'tc-insd':S.tcInsD,'tc-med':S.tcMed,'tc-edu':S.tcEdu,
+    'tc-don':S.tcDon,'tc-rent':S.tcRent,'tc-etc':S.tcEtc,'prepaid':S.prepaid,
+    'pn-biz-sodeum':S.pnBizSodeum,'pn-biz-suip':S.pnBizSuip,'pn-biz-prepaid':S.pnBizPrepaid};
+  Object.entries(mf).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&v>0)el.value=toComma(v);});
+  const nf={'d-boin':S.dBoin,'d-spouse':S.dSpouse,'d-parent':S.dParent,
+    'd-child':S.dChild,'d-elderly':S.dElderly,'d-disabled':S.dDisabled,
+    'd-single':S.dSingle,'tc-child':S.tcChild,'tc-birth':S.tcBirth};
+  Object.entries(nf).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});
+}
+initFields();updateUI();
+</script>
+</body>
+</html>
